@@ -14,7 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      giorni: {
+        Row: {
+          created_at: string
+          date: string | null
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      livelli: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      sale: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      stages: {
+        Row: {
+          artist: string
+          created_at: string
+          end_time: string
+          giorno_id: string
+          id: string
+          livello_id: string | null
+          notes: string | null
+          sala_id: string
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist: string
+          created_at?: string
+          end_time: string
+          giorno_id: string
+          id?: string
+          livello_id?: string | null
+          notes?: string | null
+          sala_id: string
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist?: string
+          created_at?: string
+          end_time?: string
+          giorno_id?: string
+          id?: string
+          livello_id?: string | null
+          notes?: string | null
+          sala_id?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stages_giorno_id_fkey"
+            columns: ["giorno_id"]
+            isOneToOne: false
+            referencedRelation: "giorni"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stages_livello_id_fkey"
+            columns: ["livello_id"]
+            isOneToOne: false
+            referencedRelation: "livelli"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stages_sala_id_fkey"
+            columns: ["sala_id"]
+            isOneToOne: false
+            referencedRelation: "sale"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
