@@ -1,16 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import DayTabs from "@/components/DayTabs";
+import ScheduleGrid from "@/components/ScheduleGrid";
+import LevelLegend from "@/components/LevelLegend";
+import { useGiorni } from "@/hooks/useScheduleData";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+export default function Index() {
+  const { data: giorni } = useGiorni();
+  const [selectedDay, setSelectedDay] = useState<string>("");
+
+  useEffect(() => {
+    if (giorni && giorni.length > 0 && !selectedDay) {
+      setSelectedDay(giorni[0].id);
+    }
+  }, [giorni, selectedDay]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="text-center py-10 px-4">
+        <h1 className="font-heading text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          The Heels Event 2026
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg">Dance Festival Schedule</p>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 pb-16 space-y-6">
+        <DayTabs selectedDay={selectedDay} onSelectDay={setSelectedDay} />
+        <LevelLegend />
+        {selectedDay && <ScheduleGrid selectedDay={selectedDay} />}
+      </main>
+
+      <footer className="text-center py-6 text-muted-foreground text-xs">
+        <Link to="/admin" className="hover:text-foreground transition-colors">Admin</Link>
+      </footer>
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
