@@ -34,8 +34,9 @@ export default function Index() {
 
       <Link
         to="/admin"
-        className="fixed bottom-4 right-4 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground/70 bg-card/60 backdrop-blur-sm border border-border/40 hover:text-foreground hover:bg-card/80 transition-all"
       >
+        <Settings size={14} />
         Admin
       </Link>
     </div>
