@@ -11,7 +11,7 @@ type StageWithRelations = Tables<"stages"> & {
   livelli: Tables<"livelli"> | null;
 };
 
-const empty = { artist: "", title: "", start_time: "10:00", end_time: "11:00", sala_id: "", giorno_id: "", livello_id: "", notes: "" };
+const empty = { artist: "", title: "", start_time: "10:00", end_time: "11:00", sala_id: "", giorno_id: "", livello_id: "", evento_id: "", notes: "" };
 
 export default function StagesManager() {
   const { data: stages } = useStages();
