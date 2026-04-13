@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const ADMIN_PASSWORD = "heels2026admin";
+const ADMIN_PASSWORD = "Befusion2026";
 
 export function useAdminAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(
