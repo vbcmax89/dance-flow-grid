@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStages, useSale, useGiorni, useLivelli } from "@/hooks/useScheduleData";
+import { useStages, useSale, useGiorni, useLivelli, useEventi } from "@/hooks/useScheduleData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
