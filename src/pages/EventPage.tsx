@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Settings } from "lucide-react";
-import { useEvento, useGiorni, useStages, useSale } from "@/hooks/useScheduleData";
+import { useEvento, useGiorni } from "@/hooks/useScheduleData";
 import DayTabs from "@/components/DayTabs";
 import ScheduleGrid from "@/components/ScheduleGrid";
 import LevelLegend from "@/components/LevelLegend";
