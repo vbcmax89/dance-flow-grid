@@ -31,9 +31,12 @@ export default function Index() {
         {selectedDay && <ScheduleGrid selectedDay={selectedDay} />}
       </main>
 
-      <footer className="text-center py-6 text-muted-foreground text-xs">
-        <Link to="/admin" className="hover:text-foreground transition-colors">Admin</Link>
-      </footer>
+      <Link
+        to="/admin"
+        className="fixed bottom-4 right-4 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+      >
+        Admin
+      </Link>
     </div>
   );
 }
