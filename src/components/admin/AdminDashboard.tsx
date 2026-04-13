@@ -35,7 +35,6 @@ export default function AdminDashboard() {
     </div>
   );
 }
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Stages");
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
