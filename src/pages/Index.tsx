@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 import DayTabs from "@/components/DayTabs";
 import ScheduleGrid from "@/components/ScheduleGrid";
 import LevelLegend from "@/components/LevelLegend";
