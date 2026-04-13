@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStages, useSale, useGiorni, useLivelli } from "@/hooks/useScheduleData";
+import { useStages, useSale, useGiorni, useLivelli, useEventi } from "@/hooks/useScheduleData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,13 +11,14 @@ type StageWithRelations = Tables<"stages"> & {
   livelli: Tables<"livelli"> | null;
 };
 
-const empty = { artist: "", title: "", start_time: "10:00", end_time: "11:00", sala_id: "", giorno_id: "", livello_id: "", notes: "" };
+const empty = { artist: "", title: "", start_time: "10:00", end_time: "11:00", sala_id: "", giorno_id: "", livello_id: "", evento_id: "", notes: "" };
 
 export default function StagesManager() {
   const { data: stages } = useStages();
   const { data: sale } = useSale();
   const { data: giorni } = useGiorni();
   const { data: livelli } = useLivelli();
+  const { data: eventi } = useEventi();
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export default function StagesManager() {
       sala_id: form.sala_id,
       giorno_id: form.giorno_id,
       livello_id: form.livello_id || null,
+      evento_id: form.evento_id || null,
       notes: form.notes || null,
     };
     if (editingId) {
@@ -53,7 +55,7 @@ export default function StagesManager() {
 
   const edit = (s: StageWithRelations) => {
     setEditingId(s.id);
-    setForm({ artist: s.artist, title: s.title, start_time: s.start_time, end_time: s.end_time, sala_id: s.sala_id, giorno_id: s.giorno_id, livello_id: s.livello_id || "", notes: s.notes || "" });
+    setForm({ artist: s.artist, title: s.title, start_time: s.start_time, end_time: s.end_time, sala_id: s.sala_id, giorno_id: s.giorno_id, livello_id: s.livello_id || "", evento_id: (s as any).evento_id || "", notes: s.notes || "" });
   };
 
   const remove = async (id: string) => {
@@ -86,6 +88,10 @@ export default function StagesManager() {
           <select value={form.livello_id} onChange={(e) => set("livello_id", e.target.value)} className={selectClass}>
             <option value="">Select Level</option>
             {livelli?.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+          <select value={form.evento_id} onChange={(e) => set("evento_id", e.target.value)} className={selectClass}>
+            <option value="">Select Event</option>
+            {eventi?.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
           </select>
           <input type="time" value={form.start_time} onChange={(e) => set("start_time", e.target.value)} className={inputClass} />
           <input type="time" value={form.end_time} onChange={(e) => set("end_time", e.target.value)} className={inputClass} />

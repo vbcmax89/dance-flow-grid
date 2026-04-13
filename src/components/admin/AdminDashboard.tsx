@@ -3,11 +3,12 @@ import StagesManager from "./StagesManager";
 import RoomsManager from "./RoomsManager";
 import LevelsManager from "./LevelsManager";
 import DaysManager from "./DaysManager";
+import EventsManager from "./EventsManager";
 
-const tabs = ["Stages", "Rooms", "Levels", "Days"] as const;
+const tabs = ["Events", "Stages", "Rooms", "Levels", "Days"] as const;
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Stages");
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Events");
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
           </button>
         ))}
       </div>
+      {activeTab === "Events" && <EventsManager />}
       {activeTab === "Stages" && <StagesManager />}
       {activeTab === "Rooms" && <RoomsManager />}
       {activeTab === "Levels" && <LevelsManager />}

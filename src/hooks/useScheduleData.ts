@@ -1,6 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export function useEventi() {
+  return useQuery({
+    queryKey: ["eventi"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("eventi").select("*").order("start_date");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useEvento(id: string | undefined) {
+  return useQuery({
+    queryKey: ["eventi", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase.from("eventi").select("*").eq("id", id).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useSale() {
   return useQuery({
     queryKey: ["sale"],
@@ -47,3 +71,4 @@ export function useStages() {
     },
   });
 }
+

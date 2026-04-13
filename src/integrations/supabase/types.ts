@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      eventi: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       giorni: {
         Row: {
           created_at: string
@@ -91,6 +124,7 @@ export type Database = {
           artist: string
           created_at: string
           end_time: string
+          evento_id: string | null
           giorno_id: string
           id: string
           livello_id: string | null
@@ -104,6 +138,7 @@ export type Database = {
           artist: string
           created_at?: string
           end_time: string
+          evento_id?: string | null
           giorno_id: string
           id?: string
           livello_id?: string | null
@@ -117,6 +152,7 @@ export type Database = {
           artist?: string
           created_at?: string
           end_time?: string
+          evento_id?: string | null
           giorno_id?: string
           id?: string
           livello_id?: string | null
@@ -127,6 +163,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "stages_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventi"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stages_giorno_id_fkey"
             columns: ["giorno_id"]
