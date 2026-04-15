@@ -4,23 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export default function DaysManager() {
-  const { data: giorni } = useGiorni();
+export default function DaysManager({ eventoId }: { eventoId: string }) {
+  const { data: giorni } = useGiorni(eventoId);
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
 
   const add = async () => {
     if (!name.trim()) return;
-    const { error } = await supabase.from("giorni").insert({ name, date: date || null, display_order: (giorni?.length || 0) });
+    const { error } = await supabase.from("giorni").insert({ name, date: date || null, display_order: (giorni?.length || 0), evento_id: eventoId });
     if (error) { toast.error(error.message); return; }
-    setName(""); setDate(""); qc.invalidateQueries({ queryKey: ["giorni"] }); toast.success("Day added");
+    setName(""); setDate(""); qc.invalidateQueries({ queryKey: ["giorni", eventoId] }); toast.success("Day added");
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("giorni").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    qc.invalidateQueries({ queryKey: ["giorni"] }); qc.invalidateQueries({ queryKey: ["stages"] }); toast.success("Day deleted");
+    qc.invalidateQueries({ queryKey: ["giorni", eventoId] }); qc.invalidateQueries({ queryKey: ["stages", eventoId] }); toast.success("Day deleted");
   };
 
   return (

@@ -4,23 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export default function LevelsManager() {
-  const { data: livelli } = useLivelli();
+export default function LevelsManager({ eventoId }: { eventoId: string }) {
+  const { data: livelli } = useLivelli(eventoId);
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [color, setColor] = useState("#22c55e");
 
   const add = async () => {
     if (!name.trim()) return;
-    const { error } = await supabase.from("livelli").insert({ name, color, display_order: (livelli?.length || 0) });
+    const { error } = await supabase.from("livelli").insert({ name, color, display_order: (livelli?.length || 0), evento_id: eventoId });
     if (error) { toast.error(error.message); return; }
-    setName(""); qc.invalidateQueries({ queryKey: ["livelli"] }); toast.success("Level added");
+    setName(""); qc.invalidateQueries({ queryKey: ["livelli", eventoId] }); toast.success("Level added");
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("livelli").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    qc.invalidateQueries({ queryKey: ["livelli"] }); toast.success("Level deleted");
+    qc.invalidateQueries({ queryKey: ["livelli", eventoId] }); toast.success("Level deleted");
   };
 
   return (
