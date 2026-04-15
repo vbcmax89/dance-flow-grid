@@ -35,13 +35,17 @@ function StageBlock({ stage }: { stage: StageWithRelations }) {
   );
 }
 
-export default function ScheduleGrid({ selectedDay }: { selectedDay: string }) {
+export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: string; eventId?: string }) {
   const { data: sale } = useSale();
   const { data: stages } = useStages();
 
   if (!sale || !stages) return <div className="text-center text-muted-foreground py-12">Loading...</div>;
 
-  const filtered = (stages as StageWithRelations[]).filter((s) => s.giorno_id === selectedDay);
+  const filtered = (stages as StageWithRelations[]).filter((s) => {
+    if (s.giorno_id !== selectedDay) return false;
+    if (eventId) return s.evento_id === eventId;
+    return true;
+  });
 
   // Desktop: columns per room; Mobile: stack rooms vertically
   return (
