@@ -53,7 +53,7 @@ export default function EventPage() {
       <main className="max-w-6xl mx-auto px-4 pb-16 pt-6 space-y-6">
         <DayTabs selectedDay={selectedDay} onSelectDay={setSelectedDay} />
         <LevelLegend />
-        {selectedDay && <ScheduleGrid selectedDay={selectedDay} />}
+        {selectedDay && <ScheduleGrid selectedDay={selectedDay} eventId={eventId} />}
       </main>
 
       <Link
