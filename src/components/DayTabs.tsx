@@ -3,10 +3,11 @@ import { useGiorni } from "@/hooks/useScheduleData";
 interface DayTabsProps {
   selectedDay: string;
   onSelectDay: (id: string) => void;
+  eventId?: string;
 }
 
-export default function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
-  const { data: giorni } = useGiorni();
+export default function DayTabs({ selectedDay, onSelectDay, eventId }: DayTabsProps) {
+  const { data: giorni } = useGiorni(eventId);
   if (!giorni) return null;
 
   return (

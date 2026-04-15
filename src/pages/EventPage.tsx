@@ -9,7 +9,7 @@ import LevelLegend from "@/components/LevelLegend";
 export default function EventPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const { data: evento, isLoading } = useEvento(eventId);
-  const { data: giorni } = useGiorni();
+  const { data: giorni } = useGiorni(eventId);
   const [selectedDay, setSelectedDay] = useState<string>("");
 
   useEffect(() => {
@@ -28,7 +28,6 @@ export default function EventPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Banner */}
       <div className="relative w-full h-56 md:h-72 overflow-hidden">
         {evento.cover_image_url ? (
           <img src={evento.cover_image_url} alt={evento.name} className="w-full h-full object-cover" />
@@ -51,8 +50,8 @@ export default function EventPage() {
       </div>
 
       <main className="max-w-6xl mx-auto px-4 pb-16 pt-6 space-y-6">
-        <DayTabs selectedDay={selectedDay} onSelectDay={setSelectedDay} />
-        <LevelLegend />
+        <DayTabs selectedDay={selectedDay} onSelectDay={setSelectedDay} eventId={eventId} />
+        <LevelLegend eventId={eventId} />
         {selectedDay && <ScheduleGrid selectedDay={selectedDay} eventId={eventId} />}
       </main>
 

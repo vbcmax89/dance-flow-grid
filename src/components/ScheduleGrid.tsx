@@ -1,4 +1,4 @@
-import { useSale, useStages, useLivelli } from "@/hooks/useScheduleData";
+import { useSale, useStages } from "@/hooks/useScheduleData";
 import { Tables } from "@/integrations/supabase/types";
 
 type StageWithRelations = Tables<"stages"> & {
@@ -36,18 +36,13 @@ function StageBlock({ stage }: { stage: StageWithRelations }) {
 }
 
 export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: string; eventId?: string }) {
-  const { data: sale } = useSale();
-  const { data: stages } = useStages();
+  const { data: sale } = useSale(eventId);
+  const { data: stages } = useStages(eventId);
 
   if (!sale || !stages) return <div className="text-center text-muted-foreground py-12">Loading...</div>;
 
-  const filtered = (stages as StageWithRelations[]).filter((s) => {
-    if (s.giorno_id !== selectedDay) return false;
-    if (eventId) return s.evento_id === eventId;
-    return true;
-  });
+  const filtered = (stages as StageWithRelations[]).filter((s) => s.giorno_id === selectedDay);
 
-  // Desktop: columns per room; Mobile: stack rooms vertically
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {sale.map((room) => {

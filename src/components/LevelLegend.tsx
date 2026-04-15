@@ -1,8 +1,8 @@
 import { useLivelli } from "@/hooks/useScheduleData";
 
-export default function LevelLegend() {
-  const { data: livelli } = useLivelli();
-  if (!livelli) return null;
+export default function LevelLegend({ eventId }: { eventId?: string }) {
+  const { data: livelli } = useLivelli(eventId);
+  if (!livelli || livelli.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-4 items-center justify-center py-3 px-4 rounded-lg bg-card/50 border border-border">
