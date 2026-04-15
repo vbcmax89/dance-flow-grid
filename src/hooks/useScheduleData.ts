@@ -25,50 +25,57 @@ export function useEvento(id: string | undefined) {
   });
 }
 
-export function useSale() {
+export function useSale(eventoId?: string) {
   return useQuery({
-    queryKey: ["sale"],
+    queryKey: ["sale", eventoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("sale").select("*").order("display_order");
+      let query = supabase.from("sale").select("*").order("display_order");
+      if (eventoId) query = query.eq("evento_id", eventoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
 }
 
-export function useLivelli() {
+export function useLivelli(eventoId?: string) {
   return useQuery({
-    queryKey: ["livelli"],
+    queryKey: ["livelli", eventoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("livelli").select("*").order("display_order");
+      let query = supabase.from("livelli").select("*").order("display_order");
+      if (eventoId) query = query.eq("evento_id", eventoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
 }
 
-export function useGiorni() {
+export function useGiorni(eventoId?: string) {
   return useQuery({
-    queryKey: ["giorni"],
+    queryKey: ["giorni", eventoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("giorni").select("*").order("display_order");
+      let query = supabase.from("giorni").select("*").order("display_order");
+      if (eventoId) query = query.eq("evento_id", eventoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
 }
 
-export function useStages() {
+export function useStages(eventoId?: string) {
   return useQuery({
-    queryKey: ["stages"],
+    queryKey: ["stages", eventoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("stages")
         .select("*, sale(*), giorni(*), livelli(*)")
         .order("start_time");
+      if (eventoId) query = query.eq("evento_id", eventoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
 }
-
