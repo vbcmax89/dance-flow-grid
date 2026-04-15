@@ -4,23 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export default function RoomsManager() {
-  const { data: sale } = useSale();
+export default function RoomsManager({ eventoId }: { eventoId: string }) {
+  const { data: sale } = useSale(eventoId);
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [color, setColor] = useState("#8b5cf6");
 
   const add = async () => {
     if (!name.trim()) return;
-    const { error } = await supabase.from("sale").insert({ name, color, display_order: (sale?.length || 0) });
+    const { error } = await supabase.from("sale").insert({ name, color, display_order: (sale?.length || 0), evento_id: eventoId });
     if (error) { toast.error(error.message); return; }
-    setName(""); qc.invalidateQueries({ queryKey: ["sale"] }); toast.success("Room added");
+    setName(""); qc.invalidateQueries({ queryKey: ["sale", eventoId] }); toast.success("Room added");
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("sale").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    qc.invalidateQueries({ queryKey: ["sale"] }); qc.invalidateQueries({ queryKey: ["stages"] }); toast.success("Room deleted");
+    qc.invalidateQueries({ queryKey: ["sale", eventoId] }); qc.invalidateQueries({ queryKey: ["stages", eventoId] }); toast.success("Room deleted");
   };
 
   return (

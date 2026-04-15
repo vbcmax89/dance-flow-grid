@@ -52,6 +52,7 @@ export type Database = {
           created_at: string
           date: string | null
           display_order: number
+          evento_id: string | null
           id: string
           name: string
         }
@@ -59,6 +60,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           display_order?: number
+          evento_id?: string | null
           id?: string
           name: string
         }
@@ -66,16 +68,26 @@ export type Database = {
           created_at?: string
           date?: string | null
           display_order?: number
+          evento_id?: string | null
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "giorni_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventi"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       livelli: {
         Row: {
           color: string
           created_at: string
           display_order: number
+          evento_id: string | null
           id: string
           name: string
         }
@@ -83,6 +95,7 @@ export type Database = {
           color: string
           created_at?: string
           display_order?: number
+          evento_id?: string | null
           id?: string
           name: string
         }
@@ -90,16 +103,26 @@ export type Database = {
           color?: string
           created_at?: string
           display_order?: number
+          evento_id?: string | null
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "livelli_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventi"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sale: {
         Row: {
           color: string
           created_at: string
           display_order: number
+          evento_id: string | null
           id: string
           name: string
         }
@@ -107,6 +130,7 @@ export type Database = {
           color?: string
           created_at?: string
           display_order?: number
+          evento_id?: string | null
           id?: string
           name: string
         }
@@ -114,10 +138,19 @@ export type Database = {
           color?: string
           created_at?: string
           display_order?: number
+          evento_id?: string | null
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sale_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventi"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stages: {
         Row: {
