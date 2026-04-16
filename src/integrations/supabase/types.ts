@@ -155,7 +155,9 @@ export type Database = {
       stages: {
         Row: {
           artist: string
+          artist_image_url: string | null
           created_at: string
+          description: string | null
           end_time: string
           evento_id: string | null
           giorno_id: string
@@ -169,7 +171,9 @@ export type Database = {
         }
         Insert: {
           artist: string
+          artist_image_url?: string | null
           created_at?: string
+          description?: string | null
           end_time: string
           evento_id?: string | null
           giorno_id: string
@@ -183,7 +187,9 @@ export type Database = {
         }
         Update: {
           artist?: string
+          artist_image_url?: string | null
           created_at?: string
+          description?: string | null
           end_time?: string
           evento_id?: string | null
           giorno_id?: string
