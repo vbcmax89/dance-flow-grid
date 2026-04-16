@@ -16,10 +16,10 @@ export default function DayTabs({ selectedDay, onSelectDay, eventId }: DayTabsPr
         <button
           key={g.id}
           onClick={() => onSelectDay(g.id)}
-          className={`px-5 py-2 rounded-full font-heading font-semibold text-sm transition-all ${
+          className={`relative px-5 py-2 rounded-full font-heading font-bold text-sm transition-all duration-200 ${
             selectedDay === g.id
-              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(25_95%_53%/0.3)]"
+              : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
           }`}
         >
           {g.name}
