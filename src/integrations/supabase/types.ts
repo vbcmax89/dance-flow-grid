@@ -159,12 +159,14 @@ export type Database = {
           created_at: string
           description: string | null
           end_time: string
+          event_type: string | null
           evento_id: string | null
           giorno_id: string
           id: string
+          is_full_width: boolean
           livello_id: string | null
           notes: string | null
-          sala_id: string
+          sala_id: string | null
           start_time: string
           title: string
           updated_at: string
@@ -175,12 +177,14 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_time: string
+          event_type?: string | null
           evento_id?: string | null
           giorno_id: string
           id?: string
+          is_full_width?: boolean
           livello_id?: string | null
           notes?: string | null
-          sala_id: string
+          sala_id?: string | null
           start_time: string
           title: string
           updated_at?: string
@@ -191,12 +195,14 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_time?: string
+          event_type?: string | null
           evento_id?: string | null
           giorno_id?: string
           id?: string
+          is_full_width?: boolean
           livello_id?: string | null
           notes?: string | null
-          sala_id?: string
+          sala_id?: string | null
           start_time?: string
           title?: string
           updated_at?: string
