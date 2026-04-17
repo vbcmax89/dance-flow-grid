@@ -118,7 +118,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {sale.map((room) => {
-          const roomStages = filtered.filter((s) => s.sala_id === room.id);
+          const roomStages = roomStagesAll.filter((s) => s.sala_id === room.id);
           return (
             <div key={room.id} className="rounded-2xl bg-card border border-border p-4 overflow-hidden">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
