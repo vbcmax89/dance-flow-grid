@@ -360,19 +360,19 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
               const items = eventsByRoom.get(room.id) || [];
               const laid = assignLanes(items);
               const colWidth = `calc((100% - ${GUTTER}px) / ${rooms.length})`;
-              return laid.map(({ ev, lane, lanes }) => {
-                const top = ((ev.start - minM) / SLOT) * ROW_PX;
-                const rawHeight = ((ev.end - ev.start) / SLOT) * ROW_PX;
-                const height = Math.max(rawHeight - 4, MIN_BLOCK_PX);
+              return laid.map((it) => {
+                const { ev, lane, lanes } = it;
+                const top = (ev.start - minM) * PX_PER_MIN;
+                const height = computeBlockHeight(it, laid);
                 const laneWidthExpr = `calc((${colWidth} - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
                 const left = `calc(${GUTTER}px + ${roomIdx} * ${colWidth} + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
                 return (
                   <div
                     key={ev.stage.id}
                     className="absolute"
-                    style={{ top: top + 2, height, left, width: laneWidthExpr }}
+                    style={{ top, height, left, width: laneWidthExpr }}
                   >
-                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} compact={lanes > 1} />
+                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
                   </div>
                 );
               });
@@ -531,19 +531,19 @@ function MobileSchedule({
                   {TimeGutter}
                   <div className="relative border-l border-border/60">{RoomColumnBg}</div>
 
-                  {laid.map(({ ev, lane, lanes }) => {
-                    const top = ((ev.start - minM) / SLOT) * ROW_PX;
-                    const rawHeight = ((ev.end - ev.start) / SLOT) * ROW_PX;
-                    const height = Math.max(rawHeight - 4, MIN_BLOCK_PX);
+                  {laid.map((it) => {
+                    const { ev, lane, lanes } = it;
+                    const top = (ev.start - minM) * PX_PER_MIN;
+                    const height = computeBlockHeight(it, laid);
                     const laneWidthExpr = `calc((100% - ${GUTTER}px - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
                     const left = `calc(${GUTTER}px + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
                     return (
                       <div
                         key={ev.stage.id}
                         className="absolute"
-                        style={{ top: top + 2, height, left, width: laneWidthExpr }}
+                        style={{ top, height, left, width: laneWidthExpr }}
                       >
-                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} compact={lanes > 1} />
+                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
                       </div>
                     );
                   })}
