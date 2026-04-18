@@ -335,7 +335,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(${COL_MIN_PX}px, 1fr))`;
     return (
       <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
-        <div style={{ minWidth: GUTTER + rooms.length * 180 }}>
+        <div style={{ minWidth: GUTTER + rooms.length * COL_MIN_PX }}>
           {/* sticky header */}
           <div className="grid sticky top-[120px] z-20 bg-card" style={{ gridTemplateColumns }}>
             <div className="px-2 py-3 text-[10px] uppercase tracking-widest text-gold font-bold sticky left-0 bg-card z-10 border-b border-gold/30">
