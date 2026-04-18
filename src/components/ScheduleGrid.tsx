@@ -332,7 +332,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
 
   /* ---------- DESKTOP LAYOUT ---------- */
   const renderDesktop = () => {
-    const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(180px, 1fr))`;
+    const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(${COL_MIN_PX}px, 1fr))`;
     return (
       <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
         <div style={{ minWidth: GUTTER + rooms.length * 180 }}>
