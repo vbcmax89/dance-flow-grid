@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { useSale, useStages } from "@/hooks/useScheduleData";
 import { Tables } from "@/integrations/supabase/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 import StageDetailModal from "./StageDetailModal";
-import { Clock, Utensils, PartyPopper, Trophy, Info } from "lucide-react";
+import { Clock, Coffee, Utensils, UtensilsCrossed, Music, Trophy, Info, Waves, ChevronLeft, ChevronRight } from "lucide-react";
 
 type StageWithRelations = Tables<"stages"> & {
   sale: Tables<"sale"> | null;
@@ -10,26 +12,73 @@ type StageWithRelations = Tables<"stages"> & {
   livelli: Tables<"livelli"> | null;
 };
 
+const SLOT = 15;
+const ROW_PX = 16; // 64px / hour
+const GUTTER = 48;
+const MIN_BLOCK_PX = 64;
+
 function formatTime(t: string) {
   return t.slice(0, 5);
 }
-
 function toMin(t: string) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + (m || 0);
 }
 
-const SLOT = 15; // minutes per row
-const ROW_PX = 16; // px per slot -> 64px/h
-const GUTTER = 64;
-const MIN_BLOCK_PX = 60;
+type EventItem = { stage: StageWithRelations; start: number; end: number };
 
-type EventItem = {
-  stage: StageWithRelations;
-  start: number;
-  end: number;
-};
+/* ---------- full-width type styling ---------- */
+type FwStyle = { bg: string; accent: string; fg: string; Icon: any; emoji: string; italic?: boolean };
 
+function fullWidthStyle(stage: StageWithRelations): FwStyle {
+  const type = (stage as any).event_type || "special";
+  const title = (stage.title || "").toLowerCase();
+
+  if (title.includes("colazione")) return { bg: "#F59E0B", accent: "#92400E", fg: "#1a0f00", Icon: Coffee, emoji: "☕" };
+  if (title.includes("pranzo")) return { bg: "#F97316", accent: "#9A3412", fg: "#1a0a00", Icon: Utensils, emoji: "🍴" };
+  if (title.includes("cena")) return { bg: "#DC2626", accent: "#7F1D1D", fg: "#ffffff", Icon: UtensilsCrossed, emoji: "🍽️" };
+  if (title.includes("pool")) return { bg: "#06B6D4", accent: "#0E7490", fg: "#062a30", Icon: Waves, emoji: "🦩" };
+
+  switch (type) {
+    case "break":
+      return { bg: "#F59E0B", accent: "#92400E", fg: "#1a0f00", Icon: Utensils, emoji: "🍽️" };
+    case "party":
+      return { bg: "#7C3AED", accent: "#4C1D95", fg: "#ffffff", Icon: Music, emoji: "🎶" };
+    case "competition":
+      return { bg: "#92400E", accent: "#C9A84C", fg: "#ffffff", Icon: Trophy, emoji: "🏆" };
+    case "info":
+      return { bg: "#475569", accent: "#94A3B8", fg: "#e2e8f0", Icon: Info, emoji: "ℹ️", italic: true };
+    default:
+      return { bg: "hsl(var(--primary) / 0.25)", accent: "hsl(var(--gold))", fg: "hsl(var(--foreground))", Icon: Info, emoji: "✨" };
+  }
+}
+
+/* ---------- overlap → lanes within a single room ---------- */
+function assignLanes(events: EventItem[]) {
+  const sorted = [...events].sort((a, b) => a.start - b.start || a.end - b.end);
+  const laneEnds: number[] = [];
+  const laneOf: number[] = [];
+  sorted.forEach((ev) => {
+    let lane = laneEnds.findIndex((end) => end <= ev.start);
+    if (lane === -1) {
+      lane = laneEnds.length;
+      laneEnds.push(ev.end);
+    } else {
+      laneEnds[lane] = ev.end;
+    }
+    laneOf.push(lane);
+  });
+  return sorted.map((ev, i) => {
+    let maxLane = laneOf[i];
+    sorted.forEach((other, j) => {
+      if (i === j) return;
+      if (other.start < ev.end && other.end > ev.start) maxLane = Math.max(maxLane, laneOf[j]);
+    });
+    return { ev, lane: laneOf[i], lanes: maxLane + 1 };
+  });
+}
+
+/* ---------- stage block ---------- */
 function StageBlock({
   stage,
   onClick,
@@ -39,148 +88,132 @@ function StageBlock({
   onClick: () => void;
   compact?: boolean;
 }) {
-  const levelColor = stage.livelli?.color || "#888";
+  const lvl = stage.livelli?.color || "#C9A84C";
   return (
     <button
       onClick={onClick}
-      className="group h-full w-full rounded-lg border border-border bg-card hover:border-primary/50 hover:shadow-[0_0_18px_hsl(var(--primary)/0.18)] transition-all duration-200 text-left cursor-pointer overflow-hidden flex flex-col p-2"
-      style={{ padding: 8 }}
+      className="group relative h-full w-full rounded-xl overflow-hidden text-left transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_22px_hsl(var(--gold)/0.35)] hover:ring-1 hover:ring-[hsl(var(--gold)/0.6)]"
+      style={{
+        background: `linear-gradient(180deg, ${lvl}30 0%, ${lvl}10 100%)`,
+        border: `1px solid ${lvl}40`,
+      }}
     >
-      <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground leading-none">
-        <Clock size={9} />
-        <span>{formatTime(stage.start_time)}</span>
-      </div>
-      <div
-        className="font-heading font-bold text-foreground leading-tight mt-1 break-words"
-        style={{ fontSize: 13, lineHeight: "15px" }}
-      >
-        {stage.artist}
-      </div>
-      {!compact && (
-        <div
-          className="italic text-foreground/85 mt-0.5 overflow-hidden"
-          style={{
-            fontSize: 11,
-            lineHeight: "13px",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          {stage.title}
+      {/* left accent bar */}
+      <span
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+        style={{ background: lvl, boxShadow: `0 0 10px ${lvl}80` }}
+      />
+      <div className="h-full w-full pl-3 pr-2 py-2 flex flex-col">
+        <div className="flex items-center gap-1 text-[10px] font-mono text-foreground/55 leading-none">
+          <Clock size={9} />
+          <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
         </div>
-      )}
-      {stage.livelli && (
-        <span
-          className="self-end mt-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full truncate max-w-full"
-          style={{ backgroundColor: `${levelColor}30`, color: levelColor, border: `1px solid ${levelColor}55` }}
+        <div
+          className="font-heading font-bold text-foreground mt-1 break-words"
+          style={{ fontSize: 14, lineHeight: "16px" }}
         >
-          {stage.livelli.name}
-        </span>
-      )}
+          {stage.artist}
+        </div>
+        {!compact && (
+          <div
+            className="italic text-foreground/70 mt-0.5 overflow-hidden"
+            style={{
+              fontSize: 12,
+              lineHeight: "14px",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            {stage.title}
+          </div>
+        )}
+        {stage.livelli && (
+          <span
+            className="self-end mt-auto text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-full"
+            style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
+          >
+            {stage.livelli.name}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
 
-// type-specific styling for full-width blocks
-function fullWidthStyle(type: string) {
-  switch (type) {
-    case "break":
-      return {
-        bg: "#F28B82",
-        accent: "#B5443B",
-        fg: "#2a0a08",
-        Icon: Utensils,
-        italic: false,
-      };
-    case "party":
-      return {
-        bg: "#4A1070",
-        accent: "#C9A84C",
-        fg: "#ffffff",
-        Icon: PartyPopper,
-        italic: false,
-      };
-    case "competition":
-      return {
-        bg: "#8B6914",
-        accent: "#C9A84C",
-        fg: "#ffffff",
-        Icon: Trophy,
-        italic: false,
-      };
-    case "info":
-      return {
-        bg: "#3a3a3a",
-        accent: "#888888",
-        fg: "#e5e5e5",
-        Icon: Info,
-        italic: true,
-      };
-    default:
-      return {
-        bg: "hsl(var(--primary) / 0.2)",
-        accent: "hsl(var(--primary))",
-        fg: "hsl(var(--primary))",
-        Icon: Info,
-        italic: false,
-      };
-  }
+/* ---------- full-width banner ---------- */
+function FullWidthBlock({
+  stage,
+  top,
+  height,
+  left,
+  right,
+  onClick,
+}: {
+  stage: StageWithRelations;
+  top: number;
+  height: number;
+  left: string;
+  right: number;
+  onClick: () => void;
+}) {
+  const s = fullWidthStyle(stage);
+  return (
+    <button
+      onClick={onClick}
+      className="absolute rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4 transition hover:brightness-110 shadow-md"
+      style={{
+        top,
+        height: Math.max(height, 56),
+        left,
+        right,
+        background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 35%, ${s.bg})`,
+        color: s.fg,
+        borderLeft: `4px solid ${s.accent}`,
+      }}
+    >
+      <span className="text-base shrink-0">{s.emoji}</span>
+      <span className="text-[10px] font-mono opacity-75 shrink-0">
+        {formatTime(stage.start_time)}
+        {stage.end_time && stage.end_time !== stage.start_time ? `–${formatTime(stage.end_time)}` : ""}
+      </span>
+      <span
+        className={`font-heading font-bold tracking-wide uppercase text-sm text-center ${s.italic ? "italic font-medium normal-case" : ""}`}
+        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+      >
+        {stage.title}
+      </span>
+    </button>
+  );
 }
 
-// Lay out overlapping events in a column into side-by-side lanes
-function assignLanes(events: EventItem[]) {
-  const sorted = [...events].sort((a, b) => a.start - b.start || a.end - b.end);
-  const laneEnds: number[] = [];
-  const result: { ev: EventItem; lane: number; lanes: number }[] = [];
-
-  // First pass: assign each event to first lane that's free
-  const tempLanes: number[] = [];
-  sorted.forEach((ev) => {
-    let lane = laneEnds.findIndex((end) => end <= ev.start);
-    if (lane === -1) {
-      lane = laneEnds.length;
-      laneEnds.push(ev.end);
-    } else {
-      laneEnds[lane] = ev.end;
-    }
-    tempLanes.push(lane);
-  });
-
-  // Group by overlapping cluster to compute total lanes per event
-  // Simple approach: for each event, count max lanes used by anything overlapping it
-  sorted.forEach((ev, i) => {
-    let maxLane = tempLanes[i];
-    sorted.forEach((other, j) => {
-      if (i === j) return;
-      const overlaps = other.start < ev.end && other.end > ev.start;
-      if (overlaps) maxLane = Math.max(maxLane, tempLanes[j]);
-    });
-    result.push({ ev, lane: tempLanes[i], lanes: maxLane + 1 });
-  });
-
-  return result;
-}
-
+/* ---------- main ---------- */
 export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: string; eventId?: string }) {
   const { data: sale } = useSale(eventId);
   const { data: stages } = useStages(eventId);
+  const isMobile = useIsMobile();
   const [selectedStage, setSelectedStage] = useState<StageWithRelations | null>(null);
 
-  if (!sale || !stages) return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-64 rounded-2xl bg-card animate-pulse" />
-      ))}
-    </div>
-  );
+  if (!sale || !stages) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-64 rounded-2xl bg-card animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   const dayStages = (stages as StageWithRelations[]).filter(
     (s) => s.giorno_id === selectedDay && (!eventId || s.evento_id === eventId)
   );
 
   if (dayStages.length === 0) {
-    return <p className="text-muted-foreground/60 italic text-center py-12">Nessuno stage in programma</p>;
+    return (
+      <div className="rounded-2xl border border-dashed border-gold/30 py-20 text-center text-muted-foreground/60 italic animate-day-fade">
+        Programma in arrivo…
+      </div>
+    );
   }
 
   const usedRoomIds = new Set(
@@ -203,17 +236,16 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
   minM = Math.floor(minM / SLOT) * SLOT;
   maxM = Math.ceil(maxM / SLOT) * SLOT;
 
-  const totalSlots = (maxM - minM) / SLOT;
-  const totalHeight = totalSlots * ROW_PX;
+  const totalHeight = ((maxM - minM) / SLOT) * ROW_PX;
 
-  const hourMarks: number[] = [];
-  const firstHour = Math.ceil(minM / 60) * 60;
-  for (let m = firstHour; m <= maxM; m += 60) hourMarks.push(m);
+  // Half-hour ticks; full hour = stronger label
+  const halfMarks: { m: number; isHour: boolean }[] = [];
+  const firstHalf = Math.ceil(minM / 30) * 30;
+  for (let m = firstHalf; m <= maxM; m += 30) halfMarks.push({ m, isHour: m % 60 === 0 });
 
   const fullWidth = events.filter((e) => (e.stage as any).is_full_width);
   const roomEvents = events.filter((e) => !(e.stage as any).is_full_width && e.stage.sala_id);
 
-  // Group room events by sala and compute lanes for overlap handling
   const eventsByRoom = new Map<string, EventItem[]>();
   roomEvents.forEach((e) => {
     const k = e.stage.sala_id!;
@@ -221,66 +253,80 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     eventsByRoom.get(k)!.push(e);
   });
 
-  const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(0, 1fr))`;
-
-  return (
-    <>
-      <div className="rounded-2xl bg-card border border-border overflow-x-auto">
-        <div className="min-w-[640px]">
-          {/* Sticky header */}
+  /* ---------- shared building blocks ---------- */
+  const TimeGutter = (
+    <div className="relative border-r border-border bg-card sticky left-0 z-10" style={{ width: GUTTER }}>
+      {halfMarks.map(({ m, isHour }) => {
+        const top = ((m - minM) / SLOT) * ROW_PX;
+        const hh = String(Math.floor((m % (24 * 60)) / 60)).padStart(2, "0");
+        const mm = String(m % 60).padStart(2, "0");
+        return (
           <div
-            className="grid sticky top-[120px] z-20 bg-card border-b border-border"
-            style={{ gridTemplateColumns }}
+            key={m}
+            className={`absolute right-2 -translate-y-1/2 font-mono ${
+              isHour ? "text-[11px] text-gold font-bold" : "text-[9px] text-muted-foreground/60"
+            }`}
+            style={{ top }}
           >
-            <div className="px-2 py-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold sticky left-0 bg-card z-10">
+            {hh}:{mm}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const RoomColumnBg = (
+    <>
+      {halfMarks.map(({ m, isHour }) => {
+        const top = ((m - minM) / SLOT) * ROW_PX;
+        return (
+          <div
+            key={m}
+            className={`absolute left-0 right-0 ${isHour ? "border-t border-border/50" : "border-t border-border/20"}`}
+            style={{ top }}
+          />
+        );
+      })}
+    </>
+  );
+
+  const RoomHeader = ({ room }: { room: Tables<"sale"> }) => (
+    <div
+      className="px-3 py-3 flex items-center gap-2 border-l border-border bg-card border-b border-gold/30"
+    >
+      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: room.color, boxShadow: `0 0 8px ${room.color}` }} />
+      <h3 className="font-heading font-bold text-xs uppercase tracking-widest truncate text-gold">
+        {room.name}
+      </h3>
+    </div>
+  );
+
+  /* ---------- DESKTOP LAYOUT ---------- */
+  const renderDesktop = () => {
+    const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(180px, 1fr))`;
+    return (
+      <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
+        <div style={{ minWidth: GUTTER + rooms.length * 180 }}>
+          {/* sticky header */}
+          <div className="grid sticky top-[120px] z-20 bg-card" style={{ gridTemplateColumns }}>
+            <div className="px-2 py-3 text-[10px] uppercase tracking-widest text-gold font-bold sticky left-0 bg-card z-10 border-b border-gold/30">
               Ora
             </div>
             {rooms.map((room) => (
-              <div key={room.id} className="px-3 py-3 flex items-center gap-2 border-l border-border">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: room.color }} />
-                <h3 className="font-heading font-bold text-sm truncate" style={{ color: room.color }}>
-                  {room.name}
-                </h3>
-              </div>
+              <RoomHeader key={room.id} room={room} />
             ))}
           </div>
 
-          {/* Body */}
+          {/* body */}
           <div className="relative grid" style={{ gridTemplateColumns, height: totalHeight }}>
-            {/* Time gutter (sticky horizontally) */}
-            <div className="relative border-r border-border sticky left-0 bg-card z-10">
-              {hourMarks.map((m) => {
-                const top = ((m - minM) / SLOT) * ROW_PX;
-                const hh = String(Math.floor((m % (24 * 60)) / 60)).padStart(2, "0");
-                return (
-                  <div
-                    key={m}
-                    className="absolute right-2 -translate-y-1/2 text-[11px] font-mono text-muted-foreground"
-                    style={{ top }}
-                  >
-                    {hh}:00
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Room columns + gridlines */}
+            {TimeGutter}
             {rooms.map((room) => (
-              <div key={room.id} className="relative border-l border-border">
-                {hourMarks.map((m) => {
-                  const top = ((m - minM) / SLOT) * ROW_PX;
-                  return (
-                    <div
-                      key={m}
-                      className="absolute left-0 right-0 border-t border-border/40"
-                      style={{ top }}
-                    />
-                  );
-                })}
+              <div key={room.id} className="relative border-l border-border/60">
+                {RoomColumnBg}
               </div>
             ))}
 
-            {/* Stage blocks per room with lane handling */}
+            {/* room stages */}
             {rooms.map((room, roomIdx) => {
               const items = eventsByRoom.get(room.id) || [];
               const laid = assignLanes(items);
@@ -297,59 +343,204 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
                     className="absolute"
                     style={{ top: top + 2, height, left, width: laneWidthExpr }}
                   >
-                    <StageBlock
-                      stage={ev.stage}
-                      onClick={() => setSelectedStage(ev.stage)}
-                      compact={lanes > 1}
-                    />
+                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} compact={lanes > 1} />
                   </div>
                 );
               });
             })}
 
-            {/* Full-width blocks */}
+            {/* full-width */}
             {fullWidth.map(({ stage, start, end }) => {
-              const t = (stage as any).event_type || "special";
-              const style = fullWidthStyle(t);
-              const Icon = style.Icon;
-              const top = ((start - minM) / SLOT) * ROW_PX;
-              const rawHeight = ((end - start) / SLOT) * ROW_PX;
-              const height = Math.max(rawHeight - 2, 50);
+              const top = ((start - minM) / SLOT) * ROW_PX + 1;
+              const height = ((end - start) / SLOT) * ROW_PX - 2;
               return (
-                <button
+                <FullWidthBlock
                   key={stage.id}
+                  stage={stage}
+                  top={top}
+                  height={height}
+                  left={`calc(${GUTTER}px + 4px)`}
+                  right={4}
                   onClick={() => setSelectedStage(stage)}
-                  className="absolute rounded-lg overflow-hidden flex items-center gap-3 hover:opacity-95 transition shadow-md"
-                  style={{
-                    top: top + 1,
-                    height,
-                    left: `calc(${GUTTER}px + 4px)`,
-                    right: 4,
-                    background: style.bg,
-                    color: style.fg,
-                    borderLeft: `4px solid ${style.accent}`,
-                    paddingLeft: 12,
-                    paddingRight: 12,
-                  }}
-                >
-                  <Icon size={16} className="shrink-0 opacity-90" />
-                  <span className="text-[11px] font-mono opacity-80 shrink-0">
-                    {formatTime(stage.start_time)}
-                    {stage.end_time && stage.end_time !== stage.start_time ? `–${formatTime(stage.end_time)}` : ""}
-                  </span>
-                  <span
-                    className={`flex-1 text-center font-bold tracking-wide uppercase text-sm truncate ${style.italic ? "italic font-medium normal-case" : ""}`}
-                  >
-                    {stage.title}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-widest opacity-70 shrink-0">{t}</span>
-                </button>
+                />
               );
             })}
           </div>
         </div>
       </div>
+    );
+  };
+
+  /* ---------- MOBILE LAYOUT (swipe per room) ---------- */
+  const renderMobile = () => {
+    return (
+      <MobileSchedule
+        rooms={rooms}
+        eventsByRoom={eventsByRoom}
+        fullWidth={fullWidth}
+        minM={minM}
+        halfMarks={halfMarks}
+        totalHeight={totalHeight}
+        TimeGutter={TimeGutter}
+        RoomColumnBg={RoomColumnBg}
+        onSelect={setSelectedStage}
+      />
+    );
+  };
+
+  return (
+    <>
+      <div key={selectedDay} className="animate-day-fade">
+        {isMobile ? renderMobile() : renderDesktop()}
+      </div>
       <StageDetailModal stage={selectedStage} open={!!selectedStage} onClose={() => setSelectedStage(null)} />
     </>
+  );
+}
+
+/* ---------- mobile carousel component ---------- */
+function MobileSchedule({
+  rooms,
+  eventsByRoom,
+  fullWidth,
+  minM,
+  halfMarks,
+  totalHeight,
+  TimeGutter,
+  RoomColumnBg,
+  onSelect,
+}: {
+  rooms: Tables<"sale">[];
+  eventsByRoom: Map<string, EventItem[]>;
+  fullWidth: EventItem[];
+  minM: number;
+  halfMarks: { m: number; isHour: boolean }[];
+  totalHeight: number;
+  TimeGutter: JSX.Element;
+  RoomColumnBg: JSX.Element;
+  onSelect: (s: StageWithRelations) => void;
+}) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: false });
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSel = () => setActive(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSel);
+    onSel();
+    return () => {
+      emblaApi.off("select", onSel);
+    };
+  }, [emblaApi]);
+
+  if (rooms.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-hidden">
+      {/* room tabs */}
+      <div className="flex items-center gap-1 px-3 py-2 border-b border-gold/20 bg-card sticky top-[120px] z-20">
+        <button
+          onClick={() => emblaApi?.scrollPrev()}
+          className="p-1 text-gold/70 hover:text-gold disabled:opacity-30"
+          disabled={active === 0}
+          aria-label="Sala precedente"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex-1 flex gap-2 overflow-x-auto no-scrollbar justify-center">
+          {rooms.map((r, i) => {
+            const a = i === active;
+            return (
+              <button
+                key={r.id}
+                onClick={() => emblaApi?.scrollTo(i)}
+                className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition border ${
+                  a
+                    ? "bg-gold text-[hsl(var(--gold-foreground))] border-gold"
+                    : "bg-transparent text-gold/70 border-gold/30"
+                }`}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color }} />
+                  {r.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => emblaApi?.scrollNext()}
+          className="p-1 text-gold/70 hover:text-gold disabled:opacity-30"
+          disabled={active === rooms.length - 1}
+          aria-label="Sala successiva"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex">
+          {rooms.map((room) => {
+            const items = eventsByRoom.get(room.id) || [];
+            const laid = assignLanes(items);
+            return (
+              <div key={room.id} className="shrink-0 grow-0 basis-full min-w-0">
+                <div className="grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr` }}>
+                  {/* header */}
+                  <div className="px-2 py-2 text-[10px] uppercase tracking-widest text-gold font-bold border-b border-gold/30 bg-card">
+                    Ora
+                  </div>
+                  <div className="px-3 py-2 flex items-center gap-2 border-l border-border bg-card border-b border-gold/30">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: room.color, boxShadow: `0 0 8px ${room.color}` }} />
+                    <h3 className="font-heading font-bold text-xs uppercase tracking-widest text-gold truncate">
+                      {room.name}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="relative grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr`, height: totalHeight }}>
+                  {TimeGutter}
+                  <div className="relative border-l border-border/60">{RoomColumnBg}</div>
+
+                  {laid.map(({ ev, lane, lanes }) => {
+                    const top = ((ev.start - minM) / SLOT) * ROW_PX;
+                    const rawHeight = ((ev.end - ev.start) / SLOT) * ROW_PX;
+                    const height = Math.max(rawHeight - 4, MIN_BLOCK_PX);
+                    const laneWidthExpr = `calc((100% - ${GUTTER}px - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
+                    const left = `calc(${GUTTER}px + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
+                    return (
+                      <div
+                        key={ev.stage.id}
+                        className="absolute"
+                        style={{ top: top + 2, height, left, width: laneWidthExpr }}
+                      >
+                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} compact={lanes > 1} />
+                      </div>
+                    );
+                  })}
+
+                  {/* full-width banners on every slide */}
+                  {fullWidth.map(({ stage, start, end }) => {
+                    const top = ((start - minM) / SLOT) * ROW_PX + 1;
+                    const height = ((end - start) / SLOT) * ROW_PX - 2;
+                    return (
+                      <FullWidthBlock
+                        key={stage.id}
+                        stage={stage}
+                        top={top}
+                        height={height}
+                        left={`calc(${GUTTER}px + 4px)`}
+                        right={4}
+                        onClick={() => onSelect(stage)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
