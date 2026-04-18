@@ -85,13 +85,15 @@ function assignLanes(events: EventItem[]) {
 function StageBlock({
   stage,
   onClick,
-  compact,
+  height,
 }: {
   stage: StageWithRelations;
   onClick: () => void;
-  compact?: boolean;
+  height: number;
 }) {
   const lvl = stage.livelli?.color || "#C9A84C";
+  const showTitle = height >= 80;
+  const artistLines = height >= 96 ? 2 : 1;
   return (
     <button
       onClick={onClick}
@@ -106,38 +108,47 @@ function StageBlock({
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
         style={{ background: lvl, boxShadow: `0 0 10px ${lvl}80` }}
       />
-      <div className="h-full w-full pl-3 pr-2 py-2 flex flex-col">
-        <div className="flex items-center gap-1 text-[10px] font-mono text-foreground/55 leading-none">
-          <Clock size={9} />
-          <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
-        </div>
+
+      {/* time top-left */}
+      <div
+        className="absolute left-3 top-1.5 flex items-center gap-1 text-[10px] font-mono text-foreground/60 leading-none pointer-events-none"
+      >
+        <Clock size={9} />
+        <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
+      </div>
+
+      {/* level badge bottom-right */}
+      {stage.livelli && (
+        <span
+          className="absolute right-1.5 bottom-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-[85%] pointer-events-none"
+          style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
+        >
+          {stage.livelli.name}
+        </span>
+      )}
+
+      {/* center content */}
+      <div className="absolute inset-x-0 top-7 bottom-7 px-3 flex flex-col justify-center min-w-0">
         <div
-          className="font-heading font-bold text-foreground mt-1 break-words"
-          style={{ fontSize: 14, lineHeight: "16px" }}
+          className="font-heading font-bold text-foreground break-words overflow-hidden"
+          style={{
+            fontSize: 14,
+            lineHeight: "16px",
+            display: "-webkit-box",
+            WebkitLineClamp: artistLines,
+            WebkitBoxOrient: "vertical",
+          }}
         >
           {stage.artist}
         </div>
-        {!compact && (
+        {showTitle && (
           <div
-            className="italic text-foreground/70 mt-0.5 overflow-hidden"
-            style={{
-              fontSize: 12,
-              lineHeight: "14px",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
+            className="italic text-foreground/70 mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis"
+            style={{ fontSize: 12, lineHeight: "14px" }}
+            title={stage.title}
           >
             {stage.title}
           </div>
-        )}
-        {stage.livelli && (
-          <span
-            className="self-end mt-auto text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-full"
-            style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
-          >
-            {stage.livelli.name}
-          </span>
         )}
       </div>
     </button>
