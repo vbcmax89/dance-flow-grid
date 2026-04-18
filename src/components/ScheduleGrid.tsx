@@ -475,6 +475,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
         totalHeight={totalHeight}
         TimeGutter={TimeGutter}
         RoomColumnBg={RoomColumnBg}
+        RoomHeader={RoomHeader}
         onSelect={setSelectedStage}
       />
     );
@@ -496,10 +497,10 @@ function MobileSchedule({
   eventsByRoom,
   fullWidth,
   minM,
-  halfMarks,
   totalHeight,
   TimeGutter,
   RoomColumnBg,
+  RoomHeader,
   onSelect,
 }: {
   rooms: Tables<"sale">[];
@@ -510,6 +511,7 @@ function MobileSchedule({
   totalHeight: number;
   TimeGutter: JSX.Element;
   RoomColumnBg: JSX.Element;
+  RoomHeader: (props: { room: Tables<"sale">; idx: number }) => JSX.Element;
   onSelect: (s: StageWithRelations) => void;
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: false });
