@@ -12,10 +12,13 @@ type StageWithRelations = Tables<"stages"> & {
   livelli: Tables<"livelli"> | null;
 };
 
-const SLOT = 15;
-const ROW_PX = 16; // 64px / hour
+const PX_PER_MIN = 2; // 1 minute = 2px (50min => 100px)
+const SLOT = 1; // grid math step in minutes
+const ROW_PX = PX_PER_MIN; // px per minute step
 const GUTTER = 48;
-const MIN_BLOCK_PX = 64;
+const MIN_BLOCK_PX = 72;
+const BLOCK_GAP = 4;
+const COL_MIN_PX = 220;
 
 function formatTime(t: string) {
   return t.slice(0, 5);
