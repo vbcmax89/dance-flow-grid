@@ -5,14 +5,22 @@ export default function LevelLegend({ eventId }: { eventId?: string }) {
   if (!livelli || livelli.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-4 items-center justify-center">
+    <div className="flex flex-wrap gap-2 items-center justify-center">
       {livelli.map((l) => (
-        <div key={l.id} className="flex items-center gap-2">
+        <div
+          key={l.id}
+          className="flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider"
+          style={{
+            background: `${l.color}20`,
+            color: l.color,
+            border: `1px solid ${l.color}55`,
+          }}
+        >
           <span
-            className="w-2.5 h-2.5 rounded-full inline-block ring-2 ring-offset-1 ring-offset-background"
-            style={{ backgroundColor: l.color, boxShadow: `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${l.color}40` }}
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: l.color, boxShadow: `0 0 6px ${l.color}` }}
           />
-          <span className="text-xs font-medium text-muted-foreground">{l.name}</span>
+          {l.name}
         </div>
       ))}
     </div>
