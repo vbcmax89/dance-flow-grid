@@ -282,9 +282,35 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     eventsByRoom.get(k)!.push(e);
   });
 
+  /* ---------- room color palette ---------- */
+  const ROOM_PALETTE_FALLBACK = ["#B45309", "#065F46", "#1E3A5F"];
+  const roomColorFor = (room: Tables<"sale">, idx: number) => {
+    const n = room.name.toLowerCase();
+    if (n.includes("alberobello")) return "#0D9488";
+    if (n.includes("ostuni")) return "#1D4ED8";
+    if (n.includes("polignano")) return "#7C3AED";
+    if (n.includes("villaggio")) return "#BE185D";
+    return ROOM_PALETTE_FALLBACK[idx % ROOM_PALETTE_FALLBACK.length];
+  };
+  const lighten = (hex: string, amt = 0.35) => {
+    const h = hex.replace("#", "");
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    const mix = (c: number) => Math.round(c + (255 - c) * amt);
+    return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+  };
+
   /* ---------- shared building blocks ---------- */
   const TimeGutter = (
-    <div className="relative border-r border-border bg-card sticky left-0 z-10" style={{ width: GUTTER }}>
+    <div
+      className="relative sticky left-0 z-20"
+      style={{
+        width: GUTTER,
+        backgroundColor: "#0a0a0a",
+        borderRight: "1px solid rgba(201,168,76,0.3)",
+      }}
+    >
       {halfMarks.map(({ m, isHour }) => {
         const top = ((m - minM) / SLOT) * ROW_PX;
         const hh = String(Math.floor((m % (24 * 60)) / 60)).padStart(2, "0");
@@ -292,10 +318,14 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
         return (
           <div
             key={m}
-            className={`absolute right-2 -translate-y-1/2 font-mono ${
-              isHour ? "text-[11px] text-gold font-bold" : "text-[9px] text-muted-foreground/60"
-            }`}
-            style={{ top }}
+            className="absolute -translate-y-1/2 font-mono text-right"
+            style={{
+              top,
+              right: 8,
+              fontSize: 11,
+              color: isHour ? "#C9A84C" : "rgba(201,168,76,0.55)",
+              fontWeight: isHour ? 700 : 500,
+            }}
           >
             {hh}:{mm}
           </div>
@@ -319,16 +349,30 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     </>
   );
 
-  const RoomHeader = ({ room }: { room: Tables<"sale"> }) => (
-    <div
-      className="px-3 py-3 flex items-center gap-2 border-l border-border bg-card border-b border-gold/30"
-    >
-      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: room.color, boxShadow: `0 0 8px ${room.color}` }} />
-      <h3 className="font-heading font-bold text-xs uppercase tracking-widest truncate text-gold">
-        {room.name}
-      </h3>
-    </div>
-  );
+  const RoomHeader = ({ room, idx }: { room: Tables<"sale">; idx: number }) => {
+    const color = roomColorFor(room, idx);
+    return (
+      <div
+        className="flex items-center justify-center gap-2 px-3"
+        style={{
+          height: 48,
+          backgroundColor: color,
+          borderBottom: `3px solid ${lighten(color, 0.4)}`,
+        }}
+      >
+        <span
+          className="w-2.5 h-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: color, boxShadow: `0 0 8px ${lighten(color, 0.5)}` }}
+        />
+        <h3
+          className="font-heading font-bold uppercase tracking-widest truncate text-center"
+          style={{ color: "#ffffff", fontSize: 13 }}
+        >
+          {room.name}
+        </h3>
+      </div>
+    );
+  };
 
   /* ---------- DESKTOP LAYOUT ---------- */
   const renderDesktop = () => {
@@ -336,13 +380,32 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     return (
       <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
         <div style={{ minWidth: GUTTER + rooms.length * COL_MIN_PX }}>
-          {/* sticky header */}
-          <div className="grid sticky top-[120px] z-20 bg-card" style={{ gridTemplateColumns }}>
-            <div className="px-2 py-3 text-[10px] uppercase tracking-widest text-gold font-bold sticky left-0 bg-card z-10 border-b border-gold/30">
+          {/* sticky header row (Excel-style freeze pane) */}
+          <div
+            className="grid sticky top-[120px] z-20"
+            style={{
+              gridTemplateColumns,
+              backgroundColor: "#0a0a0a",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+            }}
+          >
+            {/* corner cell — top-left, must beat both axes */}
+            <div
+              className="sticky left-0 flex items-center justify-end pr-2 uppercase tracking-widest font-bold"
+              style={{
+                zIndex: 30,
+                backgroundColor: "#0a0a0a",
+                borderRight: "1px solid rgba(201,168,76,0.3)",
+                borderBottom: "3px solid rgba(201,168,76,0.3)",
+                color: "#C9A84C",
+                fontSize: 10,
+                height: 48,
+              }}
+            >
               Ora
             </div>
-            {rooms.map((room) => (
-              <RoomHeader key={room.id} room={room} />
+            {rooms.map((room, idx) => (
+              <RoomHeader key={room.id} room={room} idx={idx} />
             ))}
           </div>
 
@@ -412,6 +475,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
         totalHeight={totalHeight}
         TimeGutter={TimeGutter}
         RoomColumnBg={RoomColumnBg}
+        RoomHeader={RoomHeader}
         onSelect={setSelectedStage}
       />
     );
@@ -433,10 +497,10 @@ function MobileSchedule({
   eventsByRoom,
   fullWidth,
   minM,
-  halfMarks,
   totalHeight,
   TimeGutter,
   RoomColumnBg,
+  RoomHeader,
   onSelect,
 }: {
   rooms: Tables<"sale">[];
@@ -447,6 +511,7 @@ function MobileSchedule({
   totalHeight: number;
   TimeGutter: JSX.Element;
   RoomColumnBg: JSX.Element;
+  RoomHeader: (props: { room: Tables<"sale">; idx: number }) => JSX.Element;
   onSelect: (s: StageWithRelations) => void;
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: false });
@@ -509,22 +574,34 @@ function MobileSchedule({
 
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {rooms.map((room) => {
+          {rooms.map((room, idx) => {
             const items = eventsByRoom.get(room.id) || [];
             const laid = assignLanes(items);
             return (
               <div key={room.id} className="shrink-0 grow-0 basis-full min-w-0">
-                <div className="grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr` }}>
-                  {/* header */}
-                  <div className="px-2 py-2 text-[10px] uppercase tracking-widest text-gold font-bold border-b border-gold/30 bg-card">
+                <div
+                  className="grid sticky top-[120px] z-20"
+                  style={{
+                    gridTemplateColumns: `${GUTTER}px 1fr`,
+                    backgroundColor: "#0a0a0a",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  {/* corner cell */}
+                  <div
+                    className="flex items-center justify-end pr-2 uppercase tracking-widest font-bold"
+                    style={{
+                      backgroundColor: "#0a0a0a",
+                      borderRight: "1px solid rgba(201,168,76,0.3)",
+                      borderBottom: "3px solid rgba(201,168,76,0.3)",
+                      color: "#C9A84C",
+                      fontSize: 10,
+                      height: 48,
+                    }}
+                  >
                     Ora
                   </div>
-                  <div className="px-3 py-2 flex items-center gap-2 border-l border-border bg-card border-b border-gold/30">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: room.color, boxShadow: `0 0 8px ${room.color}` }} />
-                    <h3 className="font-heading font-bold text-xs uppercase tracking-widest text-gold truncate">
-                      {room.name}
-                    </h3>
-                  </div>
+                  <RoomHeader room={room} idx={idx} />
                 </div>
 
                 <div className="relative grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr`, height: totalHeight }}>
