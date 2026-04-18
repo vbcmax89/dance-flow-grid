@@ -12,10 +12,13 @@ type StageWithRelations = Tables<"stages"> & {
   livelli: Tables<"livelli"> | null;
 };
 
-const SLOT = 15;
-const ROW_PX = 16; // 64px / hour
+const PX_PER_MIN = 2; // 1 minute = 2px (50min => 100px)
+const SLOT = 1; // grid math step in minutes
+const ROW_PX = PX_PER_MIN; // px per minute step
 const GUTTER = 48;
-const MIN_BLOCK_PX = 64;
+const MIN_BLOCK_PX = 72;
+const BLOCK_GAP = 4;
+const COL_MIN_PX = 220;
 
 function formatTime(t: string) {
   return t.slice(0, 5);
@@ -78,17 +81,34 @@ function assignLanes(events: EventItem[]) {
   });
 }
 
+/** Compute rendered height for a laid-out item, clamping so it never
+ *  overlaps the next item in the same lane and enforcing min height + 4px gap. */
+function computeBlockHeight(
+  item: { ev: EventItem; lane: number; lanes: number },
+  all: { ev: EventItem; lane: number; lanes: number }[],
+) {
+  const { ev, lane } = item;
+  const nextInLane = all
+    .filter((o) => o !== item && o.lane === lane && o.ev.start >= ev.end)
+    .sort((a, b) => a.ev.start - b.ev.start)[0];
+  const cap = nextInLane ? (nextInLane.ev.start - ev.start) * PX_PER_MIN - BLOCK_GAP : Infinity;
+  const natural = (ev.end - ev.start) * PX_PER_MIN - BLOCK_GAP;
+  return Math.max(Math.min(natural, cap), MIN_BLOCK_PX);
+}
+
 /* ---------- stage block ---------- */
 function StageBlock({
   stage,
   onClick,
-  compact,
+  height,
 }: {
   stage: StageWithRelations;
   onClick: () => void;
-  compact?: boolean;
+  height: number;
 }) {
   const lvl = stage.livelli?.color || "#C9A84C";
+  const showTitle = height >= 80;
+  const artistLines = height >= 96 ? 2 : 1;
   return (
     <button
       onClick={onClick}
@@ -103,38 +123,47 @@ function StageBlock({
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
         style={{ background: lvl, boxShadow: `0 0 10px ${lvl}80` }}
       />
-      <div className="h-full w-full pl-3 pr-2 py-2 flex flex-col">
-        <div className="flex items-center gap-1 text-[10px] font-mono text-foreground/55 leading-none">
-          <Clock size={9} />
-          <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
-        </div>
+
+      {/* time top-left */}
+      <div
+        className="absolute left-3 top-1.5 flex items-center gap-1 text-[10px] font-mono text-foreground/60 leading-none pointer-events-none"
+      >
+        <Clock size={9} />
+        <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
+      </div>
+
+      {/* level badge bottom-right */}
+      {stage.livelli && (
+        <span
+          className="absolute right-1.5 bottom-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-[85%] pointer-events-none"
+          style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
+        >
+          {stage.livelli.name}
+        </span>
+      )}
+
+      {/* center content */}
+      <div className="absolute inset-x-0 top-7 bottom-7 px-3 flex flex-col justify-center min-w-0">
         <div
-          className="font-heading font-bold text-foreground mt-1 break-words"
-          style={{ fontSize: 14, lineHeight: "16px" }}
+          className="font-heading font-bold text-foreground break-words overflow-hidden"
+          style={{
+            fontSize: 14,
+            lineHeight: "16px",
+            display: "-webkit-box",
+            WebkitLineClamp: artistLines,
+            WebkitBoxOrient: "vertical",
+          }}
         >
           {stage.artist}
         </div>
-        {!compact && (
+        {showTitle && (
           <div
-            className="italic text-foreground/70 mt-0.5 overflow-hidden"
-            style={{
-              fontSize: 12,
-              lineHeight: "14px",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
+            className="italic text-foreground/70 mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis"
+            style={{ fontSize: 12, lineHeight: "14px" }}
+            title={stage.title}
           >
             {stage.title}
           </div>
-        )}
-        {stage.livelli && (
-          <span
-            className="self-end mt-auto text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-full"
-            style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
-          >
-            {stage.livelli.name}
-          </span>
         )}
       </div>
     </button>
@@ -303,10 +332,10 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
 
   /* ---------- DESKTOP LAYOUT ---------- */
   const renderDesktop = () => {
-    const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(180px, 1fr))`;
+    const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(${COL_MIN_PX}px, 1fr))`;
     return (
       <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
-        <div style={{ minWidth: GUTTER + rooms.length * 180 }}>
+        <div style={{ minWidth: GUTTER + rooms.length * COL_MIN_PX }}>
           {/* sticky header */}
           <div className="grid sticky top-[120px] z-20 bg-card" style={{ gridTemplateColumns }}>
             <div className="px-2 py-3 text-[10px] uppercase tracking-widest text-gold font-bold sticky left-0 bg-card z-10 border-b border-gold/30">
@@ -331,19 +360,19 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
               const items = eventsByRoom.get(room.id) || [];
               const laid = assignLanes(items);
               const colWidth = `calc((100% - ${GUTTER}px) / ${rooms.length})`;
-              return laid.map(({ ev, lane, lanes }) => {
-                const top = ((ev.start - minM) / SLOT) * ROW_PX;
-                const rawHeight = ((ev.end - ev.start) / SLOT) * ROW_PX;
-                const height = Math.max(rawHeight - 4, MIN_BLOCK_PX);
+              return laid.map((it) => {
+                const { ev, lane, lanes } = it;
+                const top = (ev.start - minM) * PX_PER_MIN;
+                const height = computeBlockHeight(it, laid);
                 const laneWidthExpr = `calc((${colWidth} - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
                 const left = `calc(${GUTTER}px + ${roomIdx} * ${colWidth} + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
                 return (
                   <div
                     key={ev.stage.id}
                     className="absolute"
-                    style={{ top: top + 2, height, left, width: laneWidthExpr }}
+                    style={{ top, height, left, width: laneWidthExpr }}
                   >
-                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} compact={lanes > 1} />
+                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
                   </div>
                 );
               });
@@ -502,19 +531,19 @@ function MobileSchedule({
                   {TimeGutter}
                   <div className="relative border-l border-border/60">{RoomColumnBg}</div>
 
-                  {laid.map(({ ev, lane, lanes }) => {
-                    const top = ((ev.start - minM) / SLOT) * ROW_PX;
-                    const rawHeight = ((ev.end - ev.start) / SLOT) * ROW_PX;
-                    const height = Math.max(rawHeight - 4, MIN_BLOCK_PX);
+                  {laid.map((it) => {
+                    const { ev, lane, lanes } = it;
+                    const top = (ev.start - minM) * PX_PER_MIN;
+                    const height = computeBlockHeight(it, laid);
                     const laneWidthExpr = `calc((100% - ${GUTTER}px - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
                     const left = `calc(${GUTTER}px + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
                     return (
                       <div
                         key={ev.stage.id}
                         className="absolute"
-                        style={{ top: top + 2, height, left, width: laneWidthExpr }}
+                        style={{ top, height, left, width: laneWidthExpr }}
                       >
-                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} compact={lanes > 1} />
+                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
                       </div>
                     );
                   })}
