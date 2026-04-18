@@ -81,6 +81,21 @@ function assignLanes(events: EventItem[]) {
   });
 }
 
+/** Compute rendered height for a laid-out item, clamping so it never
+ *  overlaps the next item in the same lane and enforcing min height + 4px gap. */
+function computeBlockHeight(
+  item: { ev: EventItem; lane: number; lanes: number },
+  all: { ev: EventItem; lane: number; lanes: number }[],
+) {
+  const { ev, lane } = item;
+  const nextInLane = all
+    .filter((o) => o !== item && o.lane === lane && o.ev.start >= ev.end)
+    .sort((a, b) => a.ev.start - b.ev.start)[0];
+  const cap = nextInLane ? (nextInLane.ev.start - ev.start) * PX_PER_MIN - BLOCK_GAP : Infinity;
+  const natural = (ev.end - ev.start) * PX_PER_MIN - BLOCK_GAP;
+  return Math.max(Math.min(natural, cap), MIN_BLOCK_PX);
+}
+
 /* ---------- stage block ---------- */
 function StageBlock({
   stage,
