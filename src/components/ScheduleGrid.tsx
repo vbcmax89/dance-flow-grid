@@ -572,22 +572,34 @@ function MobileSchedule({
 
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {rooms.map((room) => {
+          {rooms.map((room, idx) => {
             const items = eventsByRoom.get(room.id) || [];
             const laid = assignLanes(items);
             return (
               <div key={room.id} className="shrink-0 grow-0 basis-full min-w-0">
-                <div className="grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr` }}>
-                  {/* header */}
-                  <div className="px-2 py-2 text-[10px] uppercase tracking-widest text-gold font-bold border-b border-gold/30 bg-card">
+                <div
+                  className="grid sticky top-[120px] z-20"
+                  style={{
+                    gridTemplateColumns: `${GUTTER}px 1fr`,
+                    backgroundColor: "#0a0a0a",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  {/* corner cell */}
+                  <div
+                    className="flex items-center justify-end pr-2 uppercase tracking-widest font-bold"
+                    style={{
+                      backgroundColor: "#0a0a0a",
+                      borderRight: "1px solid rgba(201,168,76,0.3)",
+                      borderBottom: "3px solid rgba(201,168,76,0.3)",
+                      color: "#C9A84C",
+                      fontSize: 10,
+                      height: 48,
+                    }}
+                  >
                     Ora
                   </div>
-                  <div className="px-3 py-2 flex items-center gap-2 border-l border-border bg-card border-b border-gold/30">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: room.color, boxShadow: `0 0 8px ${room.color}` }} />
-                    <h3 className="font-heading font-bold text-xs uppercase tracking-widest text-gold truncate">
-                      {room.name}
-                    </h3>
-                  </div>
+                  <RoomHeader room={room} idx={idx} />
                 </div>
 
                 <div className="relative grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr`, height: totalHeight }}>
