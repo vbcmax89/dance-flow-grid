@@ -209,6 +209,7 @@ function FullWidthBlock({
         height: Math.max(height, 56),
         left,
         right,
+        zIndex: 4,
         background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 35%, ${s.bg})`,
         color: s.fg,
         borderLeft: `4px solid ${s.accent}`,
