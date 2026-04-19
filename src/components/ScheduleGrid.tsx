@@ -107,92 +107,77 @@ function StageBlock({
   height: number;
 }) {
   const lvl = stage.livelli?.color || "#C9A84C";
-  const compact = height < 68;
-  const showTitle = height >= 84;
-  const artistLines = height >= 104 ? 2 : 1;
+  const compact = height < 64;
+  const showTitle = height >= 88;
+  const showLevel = height >= 72;
+
   return (
     <button
       onClick={onClick}
-      className="group relative h-full w-full rounded-2xl overflow-hidden text-left transition-all duration-200 hover:scale-[1.025] hover:shadow-[0_0_32px_rgba(0,0,0,0.6)] hover:z-10"
+      className="group relative h-full w-full rounded-2xl overflow-hidden text-left transition-all duration-200 hover:brightness-110 hover:z-10"
       style={{
-        background: `linear-gradient(145deg, ${lvl}60 0%, ${lvl}30 50%, ${lvl}12 100%)`,
-        border: `1.5px solid ${lvl}70`,
-        boxShadow: `0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 ${lvl}50`,
+        background: `linear-gradient(160deg, #2a1a06 0%, #1a1106 100%)`,
+        border: `1.5px solid ${lvl}55`,
+        boxShadow: `0 2px 12px rgba(0,0,0,0.4), inset 0 0 0 1px ${lvl}20`,
       }}
     >
-      {/* left accent bar */}
+      {/* left accent */}
       <span
-        className="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-2xl"
-        style={{ background: `linear-gradient(180deg, ${lvl}ff, ${lvl}aa)`, boxShadow: `2px 0 12px ${lvl}80` }}
+        className="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-2xl"
+        style={{ background: lvl, boxShadow: `2px 0 10px ${lvl}90` }}
       />
 
       {compact ? (
-        <div className="absolute inset-0 pl-4 pr-2 flex items-center gap-2 min-w-0">
-          <span
-            className="font-heading font-bold truncate"
-            style={{ fontSize: 12, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
-          >
+        <div className="absolute inset-0 pl-3.5 pr-2 flex items-center justify-between min-w-0 gap-1">
+          <span className="font-bold truncate text-white" style={{ fontSize: 12 }}>
             {stage.artist}
           </span>
-          <span className="text-[9px] font-mono shrink-0" style={{ color: `${lvl}cc` }}>
+          <span className="text-[9px] font-mono shrink-0" style={{ color: lvl }}>
             {formatTime(stage.start_time)}
           </span>
         </div>
       ) : (
-        <>
-          {/* time badge top */}
-          <div
-            className="absolute left-4 top-2 flex items-center gap-1 leading-none pointer-events-none"
-            style={{ color: `${lvl}ee` }}
-          >
-            <Clock size={9} />
-            <span className="text-[10px] font-mono font-semibold">
-              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
-            </span>
-          </div>
+        <div className="absolute inset-0 pl-3.5 pr-2 pt-2 pb-2 flex flex-col justify-between min-w-0">
+          {/* time */}
+          <span className="text-[10px] font-mono" style={{ color: `${lvl}cc` }}>
+            {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+          </span>
 
-          {/* main content */}
-          <div className="absolute inset-x-0 top-7 bottom-7 pl-4 pr-2 flex flex-col justify-center min-w-0">
-            <div
-              className="font-heading font-bold break-words overflow-hidden"
+          {/* artist + title */}
+          <div className="flex flex-col min-w-0 mt-1">
+            <span
+              className="font-bold leading-tight text-white overflow-hidden"
               style={{
-                fontSize: 15,
-                lineHeight: "19px",
-                color: "#ffffff",
-                textShadow: "0 1px 6px rgba(0,0,0,0.7)",
+                fontSize: height >= 100 ? 16 : 14,
                 display: "-webkit-box",
-                WebkitLineClamp: artistLines,
+                WebkitLineClamp: height >= 110 ? 2 : 1,
                 WebkitBoxOrient: "vertical",
+                textShadow: "0 1px 4px rgba(0,0,0,0.8)",
               }}
             >
               {stage.artist}
-            </div>
+            </span>
             {showTitle && (
-              <div
-                className="mt-1 overflow-hidden whitespace-nowrap text-ellipsis font-medium"
-                style={{ fontSize: 11, lineHeight: "14px", color: `${lvl}dd`, fontStyle: "italic" }}
+              <span
+                className="truncate mt-0.5 font-medium"
+                style={{ fontSize: 11, color: lvl, fontStyle: "italic" }}
                 title={stage.title}
               >
                 {stage.title}
-              </div>
+              </span>
             )}
           </div>
 
-          {/* level badge bottom */}
-          {stage.livelli && (
+          {/* level pill */}
+          {showLevel && stage.livelli && (
             <span
-              className="absolute right-2 bottom-2 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full pointer-events-none"
-              style={{
-                backgroundColor: `${lvl}40`,
-                color: lvl,
-                border: `1px solid ${lvl}90`,
-                backdropFilter: "blur(4px)",
-              }}
+              className="self-start mt-1 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: `${lvl}25`, color: lvl, border: `1px solid ${lvl}60` }}
             >
               {stage.livelli.name}
             </span>
           )}
-        </>
+        </div>
       )}
     </button>
   );
@@ -412,11 +397,14 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
   const renderDesktop = () => {
     const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(${COL_MIN_PX}px, 1fr))`;
     return (
-      <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-x-auto backdrop-blur-sm">
+      <div
+        className="rounded-2xl bg-card/50 border border-gold/20 backdrop-blur-sm"
+        style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}
+      >
         <div style={{ minWidth: GUTTER + rooms.length * COL_MIN_PX }}>
-          {/* sticky header row (Excel-style freeze pane) */}
+          {/* sticky header row */}
           <div
-            className="grid sticky top-[120px] z-20"
+            className="grid sticky top-0 z-20"
             style={{
               gridTemplateColumns,
               backgroundColor: "#0a0a0a",
@@ -561,9 +549,9 @@ function MobileSchedule({
   if (rooms.length === 0) return null;
 
   return (
-    <div className="rounded-2xl bg-card/50 border border-gold/20 overflow-hidden">
+    <div className="rounded-2xl bg-card/50 border border-gold/20" style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}>
       {/* room tabs */}
-      <div className="flex items-center gap-1 px-3 py-2 border-b border-gold/20 bg-card sticky top-[120px] z-20">
+      <div className="flex items-center gap-1 px-3 py-2 border-b border-gold/20 bg-card sticky top-0 z-20">
         <button
           onClick={() => emblaApi?.scrollPrev()}
           className="p-1 text-gold/70 hover:text-gold disabled:opacity-30"
@@ -611,7 +599,7 @@ function MobileSchedule({
             return (
               <div key={room.id} className="shrink-0 grow-0 basis-full min-w-0">
                 <div
-                  className="grid sticky top-[120px] z-20"
+                  className="grid sticky top-[52px] z-20"
                   style={{
                     gridTemplateColumns: `${GUTTER}px 1fr`,
                     backgroundColor: "#0a0a0a",
