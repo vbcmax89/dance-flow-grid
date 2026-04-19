@@ -181,8 +181,8 @@ function StageBlock({
 
           {/* zona 1 — orario */}
           <span
-            className="font-mono shrink-0"
-            style={{ fontSize: 9, color: `${lvl}bb`, lineHeight: 1.4 }}
+            className="font-mono font-bold shrink-0"
+            style={{ fontSize: 11, color: "#ffffff", lineHeight: 1.4, letterSpacing: "0.02em" }}
           >
             {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
           </span>
@@ -274,11 +274,11 @@ function FullWidthBlock({
         left,
         right,
         zIndex: 0,
-        /* background semi-trasparente via hex alpha — il testo resta opaco */
-        background: `linear-gradient(90deg, ${s.accent}55 0%, ${s.bg}40 40%, ${s.bg}28 100%)`,
-        borderLeft: `3px solid ${s.accent}cc`,
-        borderTop: `1px solid ${s.accent}44`,
-        borderBottom: `1px solid ${s.accent}22`,
+        /* background semi-opaco — copre le card dietro ma lascia intuire il contenuto */
+        background: `linear-gradient(90deg, ${s.accent}cc 0%, ${s.bg}b0 40%, ${s.bg}90 100%)`,
+        borderLeft: `3px solid ${s.accent}`,
+        borderTop: `1px solid ${s.accent}66`,
+        borderBottom: `1px solid ${s.accent}33`,
         pointerEvents: "auto",
       }}
     >
@@ -287,18 +287,18 @@ function FullWidthBlock({
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4">
           <span style={{ fontSize: 32, filter: emoji3d, lineHeight: 1 }}>{s.emoji}</span>
           <span
-            className="font-bold uppercase tracking-wider text-center leading-tight"
+            className="font-extrabold uppercase tracking-wider text-center leading-tight"
             style={{
-              fontSize: 13,
-              color: s.bg === "#F59E0B" || s.bg === "#F97316" ? "#fff8e8" : "#ffffff",
-              textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+              fontSize: 14,
+              color: "#ffffff",
+              textShadow: "0 1px 4px rgba(0,0,0,0.9)",
             }}
           >
             {stage.title}
           </span>
           <span
-            className="font-mono"
-            style={{ fontSize: 10, color: s.accent, opacity: 0.9 }}
+            className="font-mono font-bold"
+            style={{ fontSize: 11, color: "#ffffff", opacity: 0.9 }}
           >
             {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
           </span>
@@ -309,19 +309,19 @@ function FullWidthBlock({
           <span style={{ fontSize: 22, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>{s.emoji}</span>
           <div className="flex flex-col min-w-0 overflow-hidden">
             <span
-              className="font-bold uppercase tracking-wide truncate"
+              className="font-extrabold uppercase tracking-wide truncate"
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: "#ffffff",
-                textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                textShadow: "0 1px 4px rgba(0,0,0,0.9)",
                 lineHeight: 1.3,
               }}
             >
               {stage.title}
             </span>
             <span
-              className="font-mono"
-              style={{ fontSize: 9, color: s.accent, opacity: 0.95 }}
+              className="font-mono font-bold"
+              style={{ fontSize: 10, color: "#ffffff", opacity: 0.85 }}
             >
               {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
             </span>
