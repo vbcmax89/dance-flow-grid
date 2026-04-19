@@ -30,6 +30,32 @@ function toMin(t: string) {
 
 type EventItem = { stage: StageWithRelations; start: number; end: number };
 
+/* ---------- dance emoji map ---------- */
+function stageEmoji(stage: StageWithRelations): string {
+  const t = ((stage.title || "") + " " + (stage.artist || "")).toLowerCase();
+  if (t.includes("lady")) return "💃";
+  if (t.includes("sensual")) return "🌹";
+  if (t.includes("fusion")) return "✨";
+  if (t.includes("zouk")) return "🌀";
+  if (t.includes("acro")) return "🤸";
+  if (t.includes("power")) return "⚡";
+  if (t.includes("musicality") || t.includes("musicalit")) return "🎵";
+  if (t.includes("eleganz") || t.includes("elegance")) return "🦢";
+  if (t.includes("footwork") || t.includes("foot")) return "👟";
+  if (t.includes("shines")) return "⭐";
+  if (t.includes("salsa")) return "🔥";
+  if (t.includes("kizomba")) return "🖤";
+  if (t.includes("urban")) return "🏙️";
+  if (t.includes("bachata")) return "🌹";
+  return "🕺";
+}
+
+/* 3D text-shadow helpers */
+const text3dWhite = "0 1px 0 rgba(255,255,255,0.25), 0 2px 0 rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.6)";
+const text3dGold = (color: string) =>
+  `0 1px 0 ${color}99, 0 2px 0 ${color}55, 0 3px 0 rgba(0,0,0,0.3), 0 5px 12px rgba(0,0,0,0.5)`;
+const emoji3d = "drop-shadow(1px 3px 4px rgba(0,0,0,0.7)) drop-shadow(0 1px 0 rgba(0,0,0,0.5))";
+
 /* ---------- full-width type styling ---------- */
 type FwStyle = { bg: string; accent: string; fg: string; Icon: any; emoji: string; italic?: boolean };
 
@@ -129,7 +155,8 @@ function StageBlock({
 
       {compact ? (
         <div className="absolute inset-0 pl-3.5 pr-2 flex items-center justify-between min-w-0 gap-1">
-          <span className="font-bold truncate text-white" style={{ fontSize: 12 }}>
+          <span style={{ filter: emoji3d, fontSize: 13, lineHeight: 1 }}>{stageEmoji(stage)}</span>
+          <span className="font-bold truncate text-white flex-1 mx-1" style={{ fontSize: 12, textShadow: text3dWhite }}>
             {stage.artist}
           </span>
           <span className="text-[9px] font-mono shrink-0" style={{ color: lvl }}>
@@ -143,36 +170,49 @@ function StageBlock({
             {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
           </span>
 
-          {/* artist + title */}
-          <div className="flex flex-col min-w-0 mt-1">
+          {/* emoji + artist + title */}
+          <div className="flex items-start gap-1.5 min-w-0 mt-1">
             <span
-              className="font-bold leading-tight text-white overflow-hidden"
-              style={{
-                fontSize: height >= 100 ? 16 : 14,
-                display: "-webkit-box",
-                WebkitLineClamp: height >= 110 ? 2 : 1,
-                WebkitBoxOrient: "vertical",
-                textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-              }}
+              className="shrink-0 leading-none"
+              style={{ fontSize: height >= 100 ? 20 : 16, filter: emoji3d, marginTop: 1 }}
             >
-              {stage.artist}
+              {stageEmoji(stage)}
             </span>
-            {showTitle && (
+            <div className="flex flex-col min-w-0">
               <span
-                className="truncate mt-0.5 font-medium"
-                style={{ fontSize: 11, color: lvl, fontStyle: "italic" }}
-                title={stage.title}
+                className="font-bold leading-tight text-white overflow-hidden"
+                style={{
+                  fontSize: height >= 100 ? 16 : 14,
+                  display: "-webkit-box",
+                  WebkitLineClamp: height >= 110 ? 2 : 1,
+                  WebkitBoxOrient: "vertical",
+                  textShadow: text3dWhite,
+                }}
               >
-                {stage.title}
+                {stage.artist}
               </span>
-            )}
+              {showTitle && (
+                <span
+                  className="truncate mt-0.5 font-semibold"
+                  style={{ fontSize: 11, color: lvl, fontStyle: "italic", textShadow: text3dGold(lvl) }}
+                  title={stage.title}
+                >
+                  {stage.title}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* level pill */}
           {showLevel && stage.livelli && (
             <span
               className="self-start mt-1 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: `${lvl}25`, color: lvl, border: `1px solid ${lvl}60` }}
+              style={{
+                backgroundColor: `${lvl}25`,
+                color: lvl,
+                border: `1px solid ${lvl}60`,
+                textShadow: text3dGold(lvl),
+              }}
             >
               {stage.livelli.name}
             </span>
@@ -210,21 +250,29 @@ function FullWidthBlock({
         left,
         right,
         zIndex: 0,
-        opacity: 0.38,
+        opacity: 0.42,
         background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 35%, ${s.bg})`,
         color: s.fg,
         borderLeft: `4px solid ${s.accent}`,
         pointerEvents: "auto",
       }}
     >
-      <span className="text-base shrink-0">{s.emoji}</span>
+      <span
+        className="shrink-0 leading-none"
+        style={{ fontSize: 28, filter: emoji3d }}
+      >
+        {s.emoji}
+      </span>
       <span className="text-[10px] font-mono opacity-75 shrink-0">
         {formatTime(stage.start_time)}
         {stage.end_time && stage.end_time !== stage.start_time ? `–${formatTime(stage.end_time)}` : ""}
       </span>
       <span
         className={`font-heading font-bold tracking-wide uppercase text-sm text-center ${s.italic ? "italic font-medium normal-case" : ""}`}
-        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+        style={{
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          textShadow: "0 1px 0 rgba(0,0,0,0.4), 0 2px 0 rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.5)",
+        }}
       >
         {stage.title}
       </span>
