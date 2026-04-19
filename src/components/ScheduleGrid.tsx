@@ -412,33 +412,30 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
           {/* body */}
           <div className="relative grid" style={{ gridTemplateColumns, height: totalHeight }}>
             {TimeGutter}
-            {rooms.map((room) => (
-              <div key={room.id} className="relative border-l border-border/60">
-                {RoomColumnBg}
-              </div>
-            ))}
-
-            {/* room stages */}
-            {rooms.map((room, roomIdx) => {
+            {rooms.map((room) => {
               const items = eventsByRoom.get(room.id) || [];
               const laid = assignLanes(items);
-              const colWidth = `calc((100% - ${GUTTER}px) / ${rooms.length})`;
-              return laid.map((it) => {
-                const { ev, lane, lanes } = it;
-                const top = (ev.start - minM) * PX_PER_MIN;
-                const height = computeBlockHeight(it, laid);
-                const laneWidthExpr = `calc((${colWidth} - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
-                const left = `calc(${GUTTER}px + ${roomIdx} * ${colWidth} + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
-                return (
-                  <div
-                    key={ev.stage.id}
-                    className="absolute"
-                    style={{ top, height, left, width: laneWidthExpr }}
-                  >
-                    <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
-                  </div>
-                );
-              });
+              return (
+                <div key={room.id} className="relative border-l border-border/60">
+                  {RoomColumnBg}
+                  {laid.map((it) => {
+                    const { ev, lane, lanes } = it;
+                    const top = (ev.start - minM) * PX_PER_MIN;
+                    const height = computeBlockHeight(it, laid);
+                    const laneWidthExpr = `calc((100% - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
+                    const left = `calc(4px + ${lane} * (${laneWidthExpr} + 4px))`;
+                    return (
+                      <div
+                        key={ev.stage.id}
+                        className="absolute"
+                        style={{ top, height, left, width: laneWidthExpr }}
+                      >
+                        <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
             })}
 
             {/* full-width */}
@@ -606,24 +603,25 @@ function MobileSchedule({
 
                 <div className="relative grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr`, height: totalHeight }}>
                   {TimeGutter}
-                  <div className="relative border-l border-border/60">{RoomColumnBg}</div>
-
-                  {laid.map((it) => {
-                    const { ev, lane, lanes } = it;
-                    const top = (ev.start - minM) * PX_PER_MIN;
-                    const height = computeBlockHeight(it, laid);
-                    const laneWidthExpr = `calc((100% - ${GUTTER}px - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
-                    const left = `calc(${GUTTER}px + 4px + ${lane} * (${laneWidthExpr} + 4px))`;
-                    return (
-                      <div
-                        key={ev.stage.id}
-                        className="absolute"
-                        style={{ top, height, left, width: laneWidthExpr }}
-                      >
-                        <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
-                      </div>
-                    );
-                  })}
+                  <div className="relative border-l border-border/60">
+                    {RoomColumnBg}
+                    {laid.map((it) => {
+                      const { ev, lane, lanes } = it;
+                      const top = (ev.start - minM) * PX_PER_MIN;
+                      const height = computeBlockHeight(it, laid);
+                      const laneWidthExpr = `calc((100% - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
+                      const left = `calc(4px + ${lane} * (${laneWidthExpr} + 4px))`;
+                      return (
+                        <div
+                          key={ev.stage.id}
+                          className="absolute"
+                          style={{ top, height, left, width: laneWidthExpr }}
+                        >
+                          <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
+                        </div>
+                      );
+                    })}
+                  </div>
 
                   {/* full-width banners on every slide */}
                   {fullWidth.map(({ stage, start, end }) => {
