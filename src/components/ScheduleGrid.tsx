@@ -15,7 +15,9 @@ type StageWithRelations = Tables<"stages"> & {
 const PX_PER_MIN = 2; // 1 minute = 2px (50min => 100px)
 const SLOT = 1; // grid math step in minutes
 const ROW_PX = PX_PER_MIN; // px per minute step
-const GUTTER = 48;
+const TIME_W = 48;   // colonna time ticks (destra del gutter)
+const SERVICE_W = 96; // colonna service labels (sinistra del gutter)
+const GUTTER = TIME_W + SERVICE_W; // 144px totale
 const MIN_BLOCK_PX = 76;
 const BLOCK_GAP = 6;
 const COL_MIN_PX = 220;
@@ -244,14 +246,13 @@ function StageBlock({
   );
 }
 
-/* ---------- full-width banner ---------- */
+/* ---------- full-width banner — solo banda colorata, testo nel TimeGutter ---------- */
 function FullWidthBlock({
   stage,
   top,
   height,
   left,
   right,
-  onClick,
 }: {
   stage: StageWithRelations;
   top: number;
@@ -261,80 +262,21 @@ function FullWidthBlock({
   onClick: () => void;
 }) {
   const s = fullWidthStyle(stage);
-  const h = Math.max(height, 48);
-
   return (
-    <>
-      {/* banda colorata leggera — copre lo slot senza testo */}
-      <div
-        style={{
-          position: "absolute",
-          top,
-          height: h,
-          left,
-          right,
-          zIndex: 0,
-          background: `linear-gradient(90deg, ${s.accent}35 0%, ${s.bg}20 60%, transparent 100%)`,
-          borderLeft: `2px solid ${s.accent}70`,
-          pointerEvents: "none",
-          borderRadius: "0 10px 10px 0",
-        }}
-      />
-
-      {/* label esterno a sinistra — testo opaco fuori dallo slot */}
-      <button
-        onClick={onClick}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: top + 6,
-          zIndex: 3,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          padding: "5px 14px 5px 8px",
-          background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 120%)`,
-          borderRadius: "0 24px 24px 0",
-          color: "#ffffff",
-          border: "none",
-          cursor: "pointer",
-          boxShadow: `2px 3px 10px rgba(0,0,0,0.5)`,
-          maxWidth: 220,
-          overflow: "hidden",
-        }}
-      >
-        <span style={{ fontSize: 20, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
-          {s.emoji}
-        </span>
-        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 800,
-              color: "#ffffff",
-              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              letterSpacing: "0.03em",
-            }}
-          >
-            {stage.title}
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "rgba(255,255,255,0.9)",
-              fontFamily: "monospace",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
-          </span>
-        </div>
-      </button>
-    </>
+    <div
+      style={{
+        position: "absolute",
+        top,
+        height: Math.max(height, 48),
+        left,
+        right,
+        zIndex: 0,
+        background: `linear-gradient(90deg, ${s.accent}28 0%, ${s.bg}18 50%, transparent 100%)`,
+        borderTop: `1px solid ${s.accent}40`,
+        borderBottom: `1px solid ${s.accent}20`,
+        pointerEvents: "none",
+      }}
+    />
   );
 }
 
@@ -433,6 +375,51 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
         borderRight: "1px solid rgba(201,168,76,0.3)",
       }}
     >
+      {/* service labels — colonna sinistra */}
+      {fullWidth.map(({ stage, start, end }) => {
+        const s = fullWidthStyle(stage);
+        const top = (start - minM) * PX_PER_MIN;
+        const h = (end - start) * PX_PER_MIN;
+        return (
+          <button
+            key={stage.id}
+            onClick={() => setSelectedStage(stage)}
+            className="absolute flex flex-col items-start justify-center gap-0.5 overflow-hidden"
+            style={{
+              left: 2,
+              top: top + 4,
+              width: SERVICE_W - 6,
+              height: Math.max(h - 8, 36),
+              padding: "4px 8px 4px 6px",
+              background: `linear-gradient(135deg, ${s.accent}ee, ${s.bg}cc)`,
+              borderRadius: "6px 6px 6px 6px",
+              borderLeft: `3px solid ${s.accent}`,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+              zIndex: 5,
+            }}
+          >
+            <div className="flex items-center gap-1 w-full overflow-hidden">
+              <span style={{ fontSize: 14, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
+                {s.emoji}
+              </span>
+              <span
+                className="font-extrabold uppercase truncate"
+                style={{ fontSize: 10, color: "#fff", letterSpacing: "0.04em", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+              >
+                {stage.title}
+              </span>
+            </div>
+            <span
+              className="font-mono font-bold"
+              style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", lineHeight: 1 }}
+            >
+              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+            </span>
+          </button>
+        );
+      })}
+
+      {/* time ticks — colonna destra */}
       {halfMarks.map(({ m, isHour }) => {
         const top = ((m - minM) / SLOT) * ROW_PX;
         const hh = String(Math.floor((m % (24 * 60)) / 60)).padStart(2, "0");
