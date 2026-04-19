@@ -261,42 +261,73 @@ function FullWidthBlock({
   onClick: () => void;
 }) {
   const s = fullWidthStyle(stage);
+  const h = Math.max(height, 52);
+  const tall = h >= 80;
+
   return (
     <button
       onClick={onClick}
-      className="absolute rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4 transition hover:opacity-60"
+      className="absolute rounded-xl overflow-hidden transition-all"
       style={{
         top,
-        height: Math.max(height, 56),
+        height: h,
         left,
         right,
         zIndex: 0,
-        opacity: 0.42,
-        background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 35%, ${s.bg})`,
-        color: s.fg,
-        borderLeft: `4px solid ${s.accent}`,
+        /* background semi-trasparente via hex alpha — il testo resta opaco */
+        background: `linear-gradient(90deg, ${s.accent}55 0%, ${s.bg}40 40%, ${s.bg}28 100%)`,
+        borderLeft: `3px solid ${s.accent}cc`,
+        borderTop: `1px solid ${s.accent}44`,
+        borderBottom: `1px solid ${s.accent}22`,
         pointerEvents: "auto",
       }}
     >
-      <span
-        className="shrink-0 leading-none"
-        style={{ fontSize: 28, filter: emoji3d }}
-      >
-        {s.emoji}
-      </span>
-      <span className="text-[10px] font-mono opacity-75 shrink-0">
-        {formatTime(stage.start_time)}
-        {stage.end_time && stage.end_time !== stage.start_time ? `–${formatTime(stage.end_time)}` : ""}
-      </span>
-      <span
-        className={`font-heading font-bold tracking-wide uppercase text-sm text-center ${s.italic ? "italic font-medium normal-case" : ""}`}
-        style={{
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-          textShadow: "0 1px 0 rgba(0,0,0,0.4), 0 2px 0 rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.5)",
-        }}
-      >
-        {stage.title}
-      </span>
+      {tall ? (
+        /* layout verticale per blocchi alti */
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4">
+          <span style={{ fontSize: 32, filter: emoji3d, lineHeight: 1 }}>{s.emoji}</span>
+          <span
+            className="font-bold uppercase tracking-wider text-center leading-tight"
+            style={{
+              fontSize: 13,
+              color: s.bg === "#F59E0B" || s.bg === "#F97316" ? "#fff8e8" : "#ffffff",
+              textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+            }}
+          >
+            {stage.title}
+          </span>
+          <span
+            className="font-mono"
+            style={{ fontSize: 10, color: s.accent, opacity: 0.9 }}
+          >
+            {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+          </span>
+        </div>
+      ) : (
+        /* layout orizzontale per blocchi bassi */
+        <div className="absolute inset-0 flex items-center gap-2.5 px-3 overflow-hidden">
+          <span style={{ fontSize: 22, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>{s.emoji}</span>
+          <div className="flex flex-col min-w-0 overflow-hidden">
+            <span
+              className="font-bold uppercase tracking-wide truncate"
+              style={{
+                fontSize: 12,
+                color: "#ffffff",
+                textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                lineHeight: 1.3,
+              }}
+            >
+              {stage.title}
+            </span>
+            <span
+              className="font-mono"
+              style={{ fontSize: 9, color: s.accent, opacity: 0.95 }}
+            >
+              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+            </span>
+          </div>
+        </div>
+      )}
     </button>
   );
 }
