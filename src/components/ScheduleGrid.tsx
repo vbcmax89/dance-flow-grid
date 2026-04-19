@@ -203,16 +203,18 @@ function FullWidthBlock({
   return (
     <button
       onClick={onClick}
-      className="absolute rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4 transition hover:brightness-110 shadow-md"
+      className="absolute rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4 transition hover:opacity-60"
       style={{
         top,
         height: Math.max(height, 56),
         left,
         right,
-        zIndex: 4,
+        zIndex: 0,
+        opacity: 0.38,
         background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 35%, ${s.bg})`,
         color: s.fg,
         borderLeft: `4px solid ${s.accent}`,
+        pointerEvents: "auto",
       }}
     >
       <span className="text-base shrink-0">{s.emoji}</span>
@@ -451,7 +453,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
                       <div
                         key={ev.stage.id}
                         className="absolute group/block"
-                        style={{ top, height, left, width: laneWidthExpr, zIndex: 1 }}
+                        style={{ top, height, left, width: laneWidthExpr, zIndex: 2 }}
                       >
                         <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
                       </div>
@@ -638,7 +640,7 @@ function MobileSchedule({
                         <div
                           key={ev.stage.id}
                           className="absolute"
-                          style={{ top, height, left, width: laneWidthExpr, zIndex: 1 }}
+                          style={{ top, height, left, width: laneWidthExpr, zIndex: 2 }}
                         >
                           <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
                         </div>
