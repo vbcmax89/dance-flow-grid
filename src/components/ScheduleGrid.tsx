@@ -16,8 +16,8 @@ const PX_PER_MIN = 2; // 1 minute = 2px (50min => 100px)
 const SLOT = 1; // grid math step in minutes
 const ROW_PX = PX_PER_MIN; // px per minute step
 const GUTTER = 48;
-const MIN_BLOCK_PX = 72;
-const BLOCK_GAP = 4;
+const MIN_BLOCK_PX = 76;
+const BLOCK_GAP = 6;
 const COL_MIN_PX = 220;
 
 function formatTime(t: string) {
@@ -107,65 +107,93 @@ function StageBlock({
   height: number;
 }) {
   const lvl = stage.livelli?.color || "#C9A84C";
-  const showTitle = height >= 80;
-  const artistLines = height >= 96 ? 2 : 1;
+  const compact = height < 68;
+  const showTitle = height >= 84;
+  const artistLines = height >= 104 ? 2 : 1;
   return (
     <button
       onClick={onClick}
-      className="group relative h-full w-full rounded-xl overflow-hidden text-left transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_22px_hsl(var(--gold)/0.35)] hover:ring-1 hover:ring-[hsl(var(--gold)/0.6)]"
+      className="group relative h-full w-full rounded-2xl overflow-hidden text-left transition-all duration-200 hover:scale-[1.025] hover:shadow-[0_0_32px_rgba(0,0,0,0.6)] hover:z-10"
       style={{
-        background: `linear-gradient(180deg, ${lvl}30 0%, ${lvl}10 100%)`,
-        border: `1px solid ${lvl}40`,
+        background: `linear-gradient(145deg, ${lvl}60 0%, ${lvl}30 50%, ${lvl}12 100%)`,
+        border: `1.5px solid ${lvl}70`,
+        boxShadow: `0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 ${lvl}50`,
       }}
     >
       {/* left accent bar */}
       <span
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
-        style={{ background: lvl, boxShadow: `0 0 10px ${lvl}80` }}
+        className="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-2xl"
+        style={{ background: `linear-gradient(180deg, ${lvl}ff, ${lvl}aa)`, boxShadow: `2px 0 12px ${lvl}80` }}
       />
 
-      {/* time top-left */}
-      <div
-        className="absolute left-3 top-1.5 flex items-center gap-1 text-[10px] font-mono text-foreground/60 leading-none pointer-events-none"
-      >
-        <Clock size={9} />
-        <span>{formatTime(stage.start_time)}–{formatTime(stage.end_time)}</span>
-      </div>
-
-      {/* level badge bottom-right */}
-      {stage.livelli && (
-        <span
-          className="absolute right-1.5 bottom-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full truncate max-w-[85%] pointer-events-none"
-          style={{ backgroundColor: `${lvl}35`, color: lvl, border: `1px solid ${lvl}70` }}
-        >
-          {stage.livelli.name}
-        </span>
-      )}
-
-      {/* center content */}
-      <div className="absolute inset-x-0 top-7 bottom-7 px-3 flex flex-col justify-center min-w-0">
-        <div
-          className="font-heading font-bold text-foreground break-words overflow-hidden"
-          style={{
-            fontSize: 14,
-            lineHeight: "16px",
-            display: "-webkit-box",
-            WebkitLineClamp: artistLines,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          {stage.artist}
-        </div>
-        {showTitle && (
-          <div
-            className="italic text-foreground/70 mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis"
-            style={{ fontSize: 12, lineHeight: "14px" }}
-            title={stage.title}
+      {compact ? (
+        <div className="absolute inset-0 pl-4 pr-2 flex items-center gap-2 min-w-0">
+          <span
+            className="font-heading font-bold truncate"
+            style={{ fontSize: 12, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
           >
-            {stage.title}
+            {stage.artist}
+          </span>
+          <span className="text-[9px] font-mono shrink-0" style={{ color: `${lvl}cc` }}>
+            {formatTime(stage.start_time)}
+          </span>
+        </div>
+      ) : (
+        <>
+          {/* time badge top */}
+          <div
+            className="absolute left-4 top-2 flex items-center gap-1 leading-none pointer-events-none"
+            style={{ color: `${lvl}ee` }}
+          >
+            <Clock size={9} />
+            <span className="text-[10px] font-mono font-semibold">
+              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+            </span>
           </div>
-        )}
-      </div>
+
+          {/* main content */}
+          <div className="absolute inset-x-0 top-7 bottom-7 pl-4 pr-2 flex flex-col justify-center min-w-0">
+            <div
+              className="font-heading font-bold break-words overflow-hidden"
+              style={{
+                fontSize: 15,
+                lineHeight: "19px",
+                color: "#ffffff",
+                textShadow: "0 1px 6px rgba(0,0,0,0.7)",
+                display: "-webkit-box",
+                WebkitLineClamp: artistLines,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {stage.artist}
+            </div>
+            {showTitle && (
+              <div
+                className="mt-1 overflow-hidden whitespace-nowrap text-ellipsis font-medium"
+                style={{ fontSize: 11, lineHeight: "14px", color: `${lvl}dd`, fontStyle: "italic" }}
+                title={stage.title}
+              >
+                {stage.title}
+              </div>
+            )}
+          </div>
+
+          {/* level badge bottom */}
+          {stage.livelli && (
+            <span
+              className="absolute right-2 bottom-2 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full pointer-events-none"
+              style={{
+                backgroundColor: `${lvl}40`,
+                color: lvl,
+                border: `1px solid ${lvl}90`,
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              {stage.livelli.name}
+            </span>
+          )}
+        </>
+      )}
     </button>
   );
 }
@@ -353,20 +381,26 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     const color = roomColorFor(room, idx);
     return (
       <div
-        className="flex items-center justify-center gap-2 px-3"
+        className="flex items-center justify-center gap-2.5 px-3 relative overflow-hidden"
         style={{
-          height: 48,
-          backgroundColor: color,
-          borderBottom: `3px solid ${lighten(color, 0.4)}`,
+          height: 52,
+          background: `linear-gradient(135deg, ${color}ff 0%, ${color}cc 60%, ${color}99 100%)`,
+          borderBottom: `3px solid ${lighten(color, 0.3)}`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px ${color}50`,
         }}
       >
+        {/* glow spot */}
         <span
-          className="w-2.5 h-2.5 rounded-full shrink-0"
-          style={{ backgroundColor: color, boxShadow: `0 0 8px ${lighten(color, 0.5)}` }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.18) 0%, transparent 70%)` }}
+        />
+        <span
+          className="w-2 h-2 rounded-full shrink-0 relative"
+          style={{ backgroundColor: "#fff", boxShadow: `0 0 10px ${lighten(color, 0.6)}` }}
         />
         <h3
-          className="font-heading font-bold uppercase tracking-widest truncate text-center"
-          style={{ color: "#ffffff", fontSize: 13 }}
+          className="font-heading font-extrabold uppercase tracking-widest truncate text-center relative"
+          style={{ color: "#ffffff", fontSize: 13, textShadow: "0 1px 4px rgba(0,0,0,0.4)", letterSpacing: "0.12em" }}
         >
           {room.name}
         </h3>
@@ -399,7 +433,7 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
                 borderBottom: "3px solid rgba(201,168,76,0.3)",
                 color: "#C9A84C",
                 fontSize: 10,
-                height: 48,
+                height: 52,
               }}
             >
               Ora
@@ -416,19 +450,19 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
               const items = eventsByRoom.get(room.id) || [];
               const laid = assignLanes(items);
               return (
-                <div key={room.id} className="relative border-l border-border/60">
+                <div key={room.id} className="relative border-l border-border/60" style={{ overflow: "visible" }}>
                   {RoomColumnBg}
                   {laid.map((it) => {
                     const { ev, lane, lanes } = it;
                     const top = (ev.start - minM) * PX_PER_MIN;
                     const height = computeBlockHeight(it, laid);
-                    const laneWidthExpr = `calc((100% - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
-                    const left = `calc(4px + ${lane} * (${laneWidthExpr} + 4px))`;
+                    const laneWidthExpr = `calc((100% - 10px - ${(lanes - 1) * 5}px) / ${lanes})`;
+                    const left = `calc(5px + ${lane} * (${laneWidthExpr} + 5px))`;
                     return (
                       <div
                         key={ev.stage.id}
-                        className="absolute"
-                        style={{ top, height, left, width: laneWidthExpr }}
+                        className="absolute group/block"
+                        style={{ top, height, left, width: laneWidthExpr, zIndex: 1 }}
                       >
                         <StageBlock stage={ev.stage} onClick={() => setSelectedStage(ev.stage)} height={height} />
                       </div>
@@ -593,7 +627,7 @@ function MobileSchedule({
                       borderBottom: "3px solid rgba(201,168,76,0.3)",
                       color: "#C9A84C",
                       fontSize: 10,
-                      height: 48,
+                      height: 52,
                     }}
                   >
                     Ora
@@ -603,19 +637,19 @@ function MobileSchedule({
 
                 <div className="relative grid" style={{ gridTemplateColumns: `${GUTTER}px 1fr`, height: totalHeight }}>
                   {TimeGutter}
-                  <div className="relative border-l border-border/60">
+                  <div className="relative border-l border-border/60" style={{ overflow: "visible" }}>
                     {RoomColumnBg}
                     {laid.map((it) => {
                       const { ev, lane, lanes } = it;
                       const top = (ev.start - minM) * PX_PER_MIN;
                       const height = computeBlockHeight(it, laid);
-                      const laneWidthExpr = `calc((100% - 8px - ${(lanes - 1) * 4}px) / ${lanes})`;
-                      const left = `calc(4px + ${lane} * (${laneWidthExpr} + 4px))`;
+                      const laneWidthExpr = `calc((100% - 10px - ${(lanes - 1) * 5}px) / ${lanes})`;
+                      const left = `calc(5px + ${lane} * (${laneWidthExpr} + 5px))`;
                       return (
                         <div
                           key={ev.stage.id}
                           className="absolute"
-                          style={{ top, height, left, width: laneWidthExpr }}
+                          style={{ top, height, left, width: laneWidthExpr, zIndex: 1 }}
                         >
                           <StageBlock stage={ev.stage} onClick={() => onSelect(ev.stage)} height={height} />
                         </div>
