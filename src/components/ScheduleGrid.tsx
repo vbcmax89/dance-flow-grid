@@ -50,11 +50,17 @@ function stageEmoji(stage: StageWithRelations): string {
   return "🕺";
 }
 
-/* 3D text-shadow helpers */
-const text3dWhite = "0 1px 0 rgba(255,255,255,0.25), 0 2px 0 rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.6)";
-const text3dGold = (color: string) =>
-  `0 1px 0 ${color}99, 0 2px 0 ${color}55, 0 3px 0 rgba(0,0,0,0.3), 0 5px 12px rgba(0,0,0,0.5)`;
-const emoji3d = "drop-shadow(1px 3px 4px rgba(0,0,0,0.7)) drop-shadow(0 1px 0 rgba(0,0,0,0.5))";
+const emoji3d = "drop-shadow(1px 3px 5px rgba(0,0,0,0.8)) drop-shadow(0 1px 0 rgba(0,0,0,0.6))";
+
+/* Level color by name — overrides DB color for consistency */
+function levelColor(name: string): string {
+  const n = (name || "").toLowerCase();
+  if (n.includes("masterclass") || n.includes("master class") || n.includes("bootcamp")) return "#A855F7";
+  if (n.includes("avanzato") || n.includes("advanced")) return "#EF4444";
+  if (n.includes("intermedio") || n.includes("intermediate") || n.includes("base-inter") || n.includes("base inter")) return "#EAB308";
+  if (n.includes("open") || n === "base" || n.includes("principianti") || n.includes("beginner")) return "#22C55E";
+  return "#C9A84C";
+}
 
 /* ---------- full-width type styling ---------- */
 type FwStyle = { bg: string; accent: string; fg: string; Icon: any; emoji: string; italic?: boolean };
@@ -132,69 +138,80 @@ function StageBlock({
   onClick: () => void;
   height: number;
 }) {
-  const lvl = stage.livelli?.color || "#C9A84C";
-  const compact = height < 64;
-  const showTitle = height >= 88;
-  const showLevel = height >= 72;
+  const lvl = levelColor(stage.livelli?.name || "");
+  const compact = height < 60;
+  const tall = height >= 110;
+  const showTitle = height >= 82;
+  const showLevel = height >= 68;
+  const emojiSize = tall ? 22 : 15;
 
   return (
     <button
       onClick={onClick}
-      className="group relative h-full w-full rounded-2xl overflow-hidden text-left transition-all duration-200 hover:brightness-110 hover:z-10"
+      className="group relative h-full w-full rounded-xl text-left transition-all duration-200 hover:brightness-110 hover:z-10"
       style={{
-        background: `linear-gradient(160deg, #2a1a06 0%, #1a1106 100%)`,
+        background: "#161008",
         border: `1.5px solid ${lvl}55`,
-        boxShadow: `0 2px 12px rgba(0,0,0,0.4), inset 0 0 0 1px ${lvl}20`,
+        boxShadow: `0 2px 8px rgba(0,0,0,0.5), inset 0 0 0 1px ${lvl}18`,
+        overflow: "hidden",
       }}
     >
-      {/* left accent */}
+      {/* left accent bar */}
       <span
-        className="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-2xl"
-        style={{ background: lvl, boxShadow: `2px 0 10px ${lvl}90` }}
+        className="absolute left-0 top-0 bottom-0 w-[4px]"
+        style={{ background: lvl }}
       />
 
       {compact ? (
-        <div className="absolute inset-0 pl-3.5 pr-2 flex items-center justify-between min-w-0 gap-1">
-          <span style={{ filter: emoji3d, fontSize: 13, lineHeight: 1 }}>{stageEmoji(stage)}</span>
-          <span className="font-bold truncate text-white flex-1 mx-1" style={{ fontSize: 12, textShadow: text3dWhite }}>
-            {stage.artist}
+        /* ── mini block: tutto su una riga ── */
+        <div className="absolute inset-0 pl-3 pr-1.5 flex items-center gap-1.5 overflow-hidden">
+          <span style={{ fontSize: 12, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
+            {stageEmoji(stage)}
           </span>
-          <span className="text-[9px] font-mono shrink-0" style={{ color: lvl }}>
-            {formatTime(stage.start_time)}
+          <span
+            className="font-bold text-white truncate"
+            style={{ fontSize: 11, lineHeight: 1.2 }}
+          >
+            {stage.artist}
           </span>
         </div>
       ) : (
-        <div className="absolute inset-0 pl-3.5 pr-2 pt-2 pb-2 flex flex-col justify-between min-w-0">
-          {/* time */}
-          <span className="text-[10px] font-mono" style={{ color: `${lvl}cc` }}>
+        /* ── blocco normale: tre zone fisse ── */
+        <div className="absolute inset-0 pl-3 pr-2 pt-1.5 pb-1.5 flex flex-col overflow-hidden">
+
+          {/* zona 1 — orario */}
+          <span
+            className="font-mono shrink-0"
+            style={{ fontSize: 9, color: `${lvl}bb`, lineHeight: 1.4 }}
+          >
             {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
           </span>
 
-          {/* emoji + artist + title */}
-          <div className="flex items-start gap-1.5 min-w-0 mt-1">
+          {/* zona 2 — emoji + artista + stile (flex-1 per riempire lo spazio) */}
+          <div className="flex items-center gap-1.5 flex-1 min-h-0 overflow-hidden my-1">
             <span
-              className="shrink-0 leading-none"
-              style={{ fontSize: height >= 100 ? 20 : 16, filter: emoji3d, marginTop: 1 }}
+              className="shrink-0 leading-none self-start mt-0.5"
+              style={{ fontSize: emojiSize, filter: emoji3d }}
             >
               {stageEmoji(stage)}
             </span>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col min-w-0 overflow-hidden">
               <span
-                className="font-bold leading-tight text-white overflow-hidden"
+                className="font-bold text-white leading-snug"
                 style={{
-                  fontSize: height >= 100 ? 16 : 14,
+                  fontSize: tall ? 15 : 13,
                   display: "-webkit-box",
-                  WebkitLineClamp: height >= 110 ? 2 : 1,
+                  WebkitLineClamp: tall ? 2 : 1,
                   WebkitBoxOrient: "vertical",
-                  textShadow: text3dWhite,
+                  overflow: "hidden",
                 }}
               >
                 {stage.artist}
               </span>
               {showTitle && (
                 <span
-                  className="truncate mt-0.5 font-semibold"
-                  style={{ fontSize: 11, color: lvl, fontStyle: "italic", textShadow: text3dGold(lvl) }}
+                  className="font-medium truncate"
+                  style={{ fontSize: 10, color: lvl, fontStyle: "italic", marginTop: 2 }}
                   title={stage.title}
                 >
                   {stage.title}
@@ -203,15 +220,19 @@ function StageBlock({
             </div>
           </div>
 
-          {/* level pill */}
+          {/* zona 3 — badge livello */}
           {showLevel && stage.livelli && (
             <span
-              className="self-start mt-1 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+              className="self-start shrink-0 font-bold uppercase"
               style={{
-                backgroundColor: `${lvl}25`,
+                fontSize: 8,
+                letterSpacing: "0.06em",
+                padding: "2px 6px",
+                borderRadius: 99,
+                backgroundColor: `${lvl}22`,
                 color: lvl,
-                border: `1px solid ${lvl}60`,
-                textShadow: text3dGold(lvl),
+                border: `1px solid ${lvl}66`,
+                lineHeight: 1.5,
               }}
             >
               {stage.livelli.name}
