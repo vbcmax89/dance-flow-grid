@@ -15,9 +15,9 @@ type StageWithRelations = Tables<"stages"> & {
 const PX_PER_MIN = 2; // 1 minute = 2px (50min => 100px)
 const SLOT = 1; // grid math step in minutes
 const ROW_PX = PX_PER_MIN; // px per minute step
-const TIME_W = 48;   // colonna time ticks (destra del gutter)
-const SERVICE_W = 96; // colonna service labels (sinistra del gutter)
-const GUTTER = TIME_W + SERVICE_W; // 144px totale
+const TIME_W = 48;    // colonna time ticks (destra del gutter)
+const SERVICE_W = 160; // colonna service labels (sinistra del gutter)
+const GUTTER = TIME_W + SERVICE_W; // 208px totale
 const MIN_BLOCK_PX = 76;
 const BLOCK_GAP = 6;
 const COL_MIN_PX = 220;
@@ -271,7 +271,7 @@ function FullWidthBlock({
         left,
         right,
         zIndex: 0,
-        background: `linear-gradient(90deg, ${s.accent}28 0%, ${s.bg}18 50%, transparent 100%)`,
+        background: `linear-gradient(90deg, ${s.accent}44 0%, ${s.accent}22 40%, transparent 100%)`,
         borderTop: `1px solid ${s.accent}40`,
         borderBottom: `1px solid ${s.accent}20`,
         pointerEvents: "none",
@@ -384,34 +384,43 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
           <button
             key={stage.id}
             onClick={() => setSelectedStage(stage)}
-            className="absolute flex flex-col items-start justify-center gap-0.5 overflow-hidden"
+            className="absolute flex flex-col items-start justify-center gap-0.5"
             style={{
               left: 2,
               top: top + 4,
-              width: SERVICE_W - 6,
-              height: Math.max(h - 8, 36),
-              padding: "4px 8px 4px 6px",
-              background: `linear-gradient(135deg, ${s.accent}ee, ${s.bg}cc)`,
-              borderRadius: "6px 6px 6px 6px",
+              width: SERVICE_W - 4,
+              height: Math.max(h - 8, 38),
+              padding: "5px 10px 5px 6px",
+              background: `linear-gradient(90deg, ${s.accent} 0%, ${s.accent}cc 40%, ${s.accent}44 80%, transparent 100%)`,
+              borderRadius: "6px 0 0 6px",
               borderLeft: `3px solid ${s.accent}`,
               boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
               zIndex: 5,
+              overflow: "hidden",
             }}
           >
-            <div className="flex items-center gap-1 w-full overflow-hidden">
-              <span style={{ fontSize: 14, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
+            <div className="flex items-center gap-1.5 w-full">
+              <span style={{ fontSize: 15, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
                 {s.emoji}
               </span>
               <span
-                className="font-extrabold uppercase truncate"
-                style={{ fontSize: 10, color: "#fff", letterSpacing: "0.04em", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+                className="font-extrabold uppercase leading-tight"
+                style={{
+                  fontSize: 11,
+                  color: "#fff",
+                  letterSpacing: "0.03em",
+                  textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                  whiteSpace: "normal",
+                  wordBreak: "break-word",
+                  lineHeight: 1.2,
+                }}
               >
                 {stage.title}
               </span>
             </div>
             <span
               className="font-mono font-bold"
-              style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", lineHeight: 1 }}
+              style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", lineHeight: 1, marginTop: 2 }}
             >
               {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
             </span>
