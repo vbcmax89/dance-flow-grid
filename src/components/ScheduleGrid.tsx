@@ -261,74 +261,80 @@ function FullWidthBlock({
   onClick: () => void;
 }) {
   const s = fullWidthStyle(stage);
-  const h = Math.max(height, 52);
-  const tall = h >= 80;
+  const h = Math.max(height, 48);
 
   return (
-    <button
-      onClick={onClick}
-      className="absolute rounded-xl overflow-hidden transition-all"
-      style={{
-        top,
-        height: h,
-        left,
-        right,
-        zIndex: 0,
-        /* background semi-opaco — copre le card dietro ma lascia intuire il contenuto */
-        background: `linear-gradient(90deg, ${s.accent}cc 0%, ${s.bg}b0 40%, ${s.bg}90 100%)`,
-        borderLeft: `3px solid ${s.accent}`,
-        borderTop: `1px solid ${s.accent}66`,
-        borderBottom: `1px solid ${s.accent}33`,
-        pointerEvents: "auto",
-      }}
-    >
-      {tall ? (
-        /* layout verticale per blocchi alti */
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4">
-          <span style={{ fontSize: 32, filter: emoji3d, lineHeight: 1 }}>{s.emoji}</span>
+    <>
+      {/* banda colorata leggera — copre lo slot senza testo */}
+      <div
+        style={{
+          position: "absolute",
+          top,
+          height: h,
+          left,
+          right,
+          zIndex: 0,
+          background: `linear-gradient(90deg, ${s.accent}35 0%, ${s.bg}20 60%, transparent 100%)`,
+          borderLeft: `2px solid ${s.accent}70`,
+          pointerEvents: "none",
+          borderRadius: "0 10px 10px 0",
+        }}
+      />
+
+      {/* label esterno a sinistra — testo opaco fuori dallo slot */}
+      <button
+        onClick={onClick}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: top + 6,
+          zIndex: 3,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "5px 14px 5px 8px",
+          background: `linear-gradient(90deg, ${s.accent}, ${s.bg} 120%)`,
+          borderRadius: "0 24px 24px 0",
+          color: "#ffffff",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: `2px 3px 10px rgba(0,0,0,0.5)`,
+          maxWidth: 220,
+          overflow: "hidden",
+        }}
+      >
+        <span style={{ fontSize: 20, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
+          {s.emoji}
+        </span>
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
           <span
-            className="font-extrabold uppercase tracking-wider text-center leading-tight"
             style={{
-              fontSize: 14,
+              fontSize: 12,
+              fontWeight: 800,
               color: "#ffffff",
-              textShadow: "0 1px 4px rgba(0,0,0,0.9)",
+              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              letterSpacing: "0.03em",
             }}
           >
             {stage.title}
           </span>
           <span
-            className="font-mono font-bold"
-            style={{ fontSize: 11, color: "#ffffff", opacity: 0.9 }}
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: "rgba(255,255,255,0.9)",
+              fontFamily: "monospace",
+              whiteSpace: "nowrap",
+            }}
           >
             {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
           </span>
         </div>
-      ) : (
-        /* layout orizzontale per blocchi bassi */
-        <div className="absolute inset-0 flex items-center gap-2.5 px-3 overflow-hidden">
-          <span style={{ fontSize: 22, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>{s.emoji}</span>
-          <div className="flex flex-col min-w-0 overflow-hidden">
-            <span
-              className="font-extrabold uppercase tracking-wide truncate"
-              style={{
-                fontSize: 13,
-                color: "#ffffff",
-                textShadow: "0 1px 4px rgba(0,0,0,0.9)",
-                lineHeight: 1.3,
-              }}
-            >
-              {stage.title}
-            </span>
-            <span
-              className="font-mono font-bold"
-              style={{ fontSize: 10, color: "#ffffff", opacity: 0.85 }}
-            >
-              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
-            </span>
-          </div>
-        </div>
-      )}
-    </button>
+      </button>
+    </>
   );
 }
 
