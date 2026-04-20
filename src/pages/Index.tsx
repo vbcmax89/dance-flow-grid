@@ -5,6 +5,7 @@ import {
   CalendarDays, MapPin, Layers, Globe, Ticket,
 } from "lucide-react";
 import { useEventi } from "@/hooks/useScheduleData";
+import { decodeEventMeta } from "@/lib/eventMeta";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 
@@ -162,35 +163,38 @@ export default function Index() {
                 )}
 
                 {/* Key info list */}
-                {hero && (
-                  <ul className="mt-6 space-y-2.5">
-                    <InfoRow icon={<CalendarDays size={14} />}
-                      text={`${eventDurationDays(hero.start_date, hero.end_date)} ${eventDurationDays(hero.start_date, hero.end_date) === 1 ? "giorno" : "giorni"} di festival`} />
-                    {hero.styles && <InfoRow icon={<Layers size={14} />} text={hero.styles} />}
-                    {hero.location && <InfoRow icon={<MapPin size={14} />} text={hero.location} />}
-                    {hero._status === "active" && (
-                      <InfoRow icon={<span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse inline-block" />} text="In corso ora" gold />
-                    )}
-                    {/* Website + Pass links */}
-                    {(hero.website_url || hero.pass_url) && (
-                      <li className="flex items-center gap-3 pt-1">
-                        {hero.website_url && (
-                          <a href={hero.website_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-[#C9A84C] transition-colors border border-white/15 hover:border-[#C9A84C]/50 rounded-full px-3 py-1">
-                            <Globe size={11} /> Sito ufficiale
-                          </a>
-                        )}
-                        {hero.pass_url && (
-                          <a href={hero.pass_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-black hover:opacity-90 transition-opacity rounded-full px-3 py-1"
-                            style={{ background: "linear-gradient(135deg, #C9A84C, #e8c870)" }}>
-                            <Ticket size={11} /> Acquista Pass
-                          </a>
-                        )}
-                      </li>
-                    )}
-                  </ul>
-                )}
+                {hero && (() => {
+                  const meta = decodeEventMeta(hero.description);
+                  const days = eventDurationDays(hero.start_date, hero.end_date);
+                  return (
+                    <ul className="mt-6 space-y-2.5">
+                      <InfoRow icon={<CalendarDays size={14} />}
+                        text={`${days} ${days === 1 ? "giorno" : "giorni"} di festival`} />
+                      {meta.styles && <InfoRow icon={<Layers size={14} />} text={meta.styles} />}
+                      {meta.location && <InfoRow icon={<MapPin size={14} />} text={meta.location} />}
+                      {hero._status === "active" && (
+                        <InfoRow icon={<span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse inline-block" />} text="In corso ora" gold />
+                      )}
+                      {(meta.website_url || meta.pass_url) && (
+                        <li className="flex items-center gap-3 pt-1">
+                          {meta.website_url && (
+                            <a href={meta.website_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-[#C9A84C] transition-colors border border-white/15 hover:border-[#C9A84C]/50 rounded-full px-3 py-1">
+                              <Globe size={11} /> Sito ufficiale
+                            </a>
+                          )}
+                          {meta.pass_url && (
+                            <a href={meta.pass_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-xs font-semibold text-black hover:opacity-90 transition-opacity rounded-full px-3 py-1"
+                              style={{ background: "linear-gradient(135deg, #C9A84C, #e8c870)" }}>
+                              <Ticket size={11} /> Acquista Pass
+                            </a>
+                          )}
+                        </li>
+                      )}
+                    </ul>
+                  );
+                })()}
 
                 {/* Countdown */}
                 {hero?._status === "upcoming" && hero.start_date && (

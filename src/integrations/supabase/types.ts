@@ -21,13 +21,9 @@ export type Database = {
           description: string | null
           end_date: string | null
           id: string
-          location: string | null
           name: string
-          pass_url: string | null
           start_date: string | null
-          styles: string | null
           updated_at: string
-          website_url: string | null
         }
         Insert: {
           cover_image_url?: string | null
@@ -35,13 +31,9 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
-          location?: string | null
           name: string
-          pass_url?: string | null
           start_date?: string | null
-          styles?: string | null
           updated_at?: string
-          website_url?: string | null
         }
         Update: {
           cover_image_url?: string | null
@@ -49,13 +41,9 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
-          location?: string | null
           name?: string
-          pass_url?: string | null
           start_date?: string | null
-          styles?: string | null
           updated_at?: string
-          website_url?: string | null
         }
         Relationships: []
       }
