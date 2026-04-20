@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import {
   Settings, Music, Instagram, Facebook, Youtube,
   Play, ChevronRight, ExternalLink, ChevronLeft,
-  CalendarDays, MapPin, Layers, Users,
+  CalendarDays, MapPin, Layers, Globe, Ticket,
 } from "lucide-react";
 import { useEventi } from "@/hooks/useScheduleData";
 import { motion, AnimatePresence } from "framer-motion";
@@ -166,12 +166,29 @@ export default function Index() {
                   <ul className="mt-6 space-y-2.5">
                     <InfoRow icon={<CalendarDays size={14} />}
                       text={`${eventDurationDays(hero.start_date, hero.end_date)} ${eventDurationDays(hero.start_date, hero.end_date) === 1 ? "giorno" : "giorni"} di festival`} />
-                    <InfoRow icon={<Layers size={14} />} text="Bachata Fusion · Sensual · Urban" />
-                    <InfoRow icon={<Users size={14} />} text="Open Level · Intermedio · Avanzato · Masterclass" />
-                    {hero._status === "active"
-                      ? <InfoRow icon={<span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse inline-block" />} text="In corso ora" gold />
-                      : hero._status === "upcoming" && <InfoRow icon={<MapPin size={14} />} text="Puglia, Italia" />
-                    }
+                    {hero.styles && <InfoRow icon={<Layers size={14} />} text={hero.styles} />}
+                    {hero.location && <InfoRow icon={<MapPin size={14} />} text={hero.location} />}
+                    {hero._status === "active" && (
+                      <InfoRow icon={<span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse inline-block" />} text="In corso ora" gold />
+                    )}
+                    {/* Website + Pass links */}
+                    {(hero.website_url || hero.pass_url) && (
+                      <li className="flex items-center gap-3 pt-1">
+                        {hero.website_url && (
+                          <a href={hero.website_url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-[#C9A84C] transition-colors border border-white/15 hover:border-[#C9A84C]/50 rounded-full px-3 py-1">
+                            <Globe size={11} /> Sito ufficiale
+                          </a>
+                        )}
+                        {hero.pass_url && (
+                          <a href={hero.pass_url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-black hover:opacity-90 transition-opacity rounded-full px-3 py-1"
+                            style={{ background: "linear-gradient(135deg, #C9A84C, #e8c870)" }}>
+                            <Ticket size={11} /> Acquista Pass
+                          </a>
+                        )}
+                      </li>
+                    )}
                   </ul>
                 )}
 
