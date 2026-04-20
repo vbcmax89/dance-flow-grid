@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Settings, Calendar } from "lucide-react";
 import { useEvento, useGiorni } from "@/hooks/useScheduleData";
+import { decodeEventMeta } from "@/lib/eventMeta";
 import DayTabs from "@/components/DayTabs";
 import ScheduleGrid from "@/components/ScheduleGrid";
 import LevelLegend from "@/components/LevelLegend";
@@ -66,8 +67,10 @@ export default function EventPage() {
                 </span>
               </div>
             )}
-            {evento.description && (
-              <p className="text-muted-foreground/80 mt-2 text-sm max-w-2xl leading-relaxed">{evento.description}</p>
+            {decodeEventMeta(evento.description).description && (
+              <p className="text-muted-foreground/80 mt-2 text-sm max-w-2xl leading-relaxed">
+                {decodeEventMeta(evento.description).description}
+              </p>
             )}
           </motion.div>
         </div>
