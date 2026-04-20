@@ -319,10 +319,8 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     );
   }
 
-  const usedRoomIds = new Set(
-    dayStages.filter((s) => !(s as any).is_full_width && s.sala_id).map((s) => s.sala_id)
-  );
-  const rooms = sale.filter((r) => usedRoomIds.has(r.id));
+  // Show all rooms defined for this event, not just those with stages today
+  const rooms = sale;
 
   const hasLate = dayStages.some((s) => toMin(s.start_time) >= 20 * 60);
   const adj = (t: number) => (hasLate && t < 6 * 60 ? t + 24 * 60 : t);
