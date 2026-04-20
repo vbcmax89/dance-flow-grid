@@ -37,39 +37,80 @@ export default function EventPage() {
     return new Date(d).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Banner */}
-      <div className="relative w-full h-64 md:h-80 overflow-hidden">
-        {evento.cover_image_url ? (
-          <img src={evento.cover_image_url} alt={evento.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-background to-background" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/20" />
+  const meta = decodeEventMeta(evento.description);
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+  return (
+    <div className="min-h-screen" style={{ background: "#0d0d0d" }}>
+      {/* Hero Banner */}
+      <div className="relative w-full overflow-hidden" style={{ minHeight: 260 }}>
+        {evento.cover_image_url ? (
+          <img src={evento.cover_image_url} alt={evento.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: "center 25%" }} />
+        ) : (
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1a1208 0%, #0d0d0d 100%)" }} />
+        )}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(13,13,13,0.45) 0%, rgba(13,13,13,0.75) 55%, #0d0d0d 100%)" }} />
+
+        <div className="relative z-10 px-6 md:px-12 pt-6 pb-8">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium mb-6 transition-colors"
+              style={{ color: "rgba(255,255,255,0.5)" }}
             >
-              <ArrowLeft size={14} /> Tutti gli Eventi
+              <ArrowLeft size={14} /> Tutti gli eventi
             </Link>
-            <h1 className="font-heading text-4xl md:text-6xl font-black text-foreground tracking-tight">
+
+            {/* eyebrow */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-6 h-0.5" style={{ background: "#C9A84C" }} />
+              <span className="text-[10px] tracking-[0.4em] uppercase font-bold" style={{ color: "#C9A84C" }}>
+                Planning
+              </span>
+            </div>
+
+            <h1 className="font-display font-black text-white tracking-tight leading-[0.9]"
+              style={{ fontSize: "clamp(2.2rem, 5vw, 4.5rem)" }}>
               {evento.name}
             </h1>
-            {(evento.start_date || evento.end_date) && (
-              <div className="flex items-center gap-2 mt-3 text-muted-foreground">
-                <Calendar size={14} className="text-primary" />
-                <span className="text-sm md:text-base">
-                  {formatDate(evento.start_date)}{evento.end_date ? ` – ${formatDate(evento.end_date)}` : ""}
-                </span>
-              </div>
-            )}
-            {decodeEventMeta(evento.description).description && (
-              <p className="text-muted-foreground/80 mt-2 text-sm max-w-2xl leading-relaxed">
-                {decodeEventMeta(evento.description).description}
+
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              {(evento.start_date || evento.end_date) && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: "rgba(201,168,76,0.3)", background: "rgba(201,168,76,0.08)" }}>
+                  <Calendar size={12} style={{ color: "#C9A84C" }} />
+                  <span className="text-xs font-semibold" style={{ color: "#C9A84C" }}>
+                    {formatDate(evento.start_date)}{evento.end_date && evento.end_date !== evento.start_date ? ` – ${formatDate(evento.end_date)}` : ""}
+                  </span>
+                </div>
+              )}
+              {meta.location && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: "rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)" }}>
+                  <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>📍 {meta.location}</span>
+                </div>
+              )}
+              {meta.styles && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: "rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)" }}>
+                  <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>💃 {meta.styles}</span>
+                </div>
+              )}
+              {meta.website_url && (
+                <a href={meta.website_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors"
+                  style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
+                  🌐 Sito ufficiale
+                </a>
+              )}
+              {meta.pass_url && (
+                <a href={meta.pass_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #C9A84C, #e8c870)", color: "#000" }}>
+                  🎟 Acquista Pass
+                </a>
+              )}
+            </div>
+
+            {meta.description && (
+              <p className="mt-3 text-sm max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {meta.description}
               </p>
             )}
           </motion.div>
@@ -77,23 +118,23 @@ export default function EventPage() {
       </div>
 
       {/* Sticky Controls */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-3 space-y-3">
+      <div className="sticky top-0 z-30 backdrop-blur-md border-b" style={{ background: "rgba(13,13,13,0.95)", borderColor: "rgba(201,168,76,0.15)" }}>
+        <div className="max-w-[1400px] mx-auto px-4 py-3 space-y-3">
           <DayTabs selectedDay={selectedDay} onSelectDay={setSelectedDay} eventId={eventId} />
           <LevelLegend eventId={eventId} />
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 pb-16 pt-6">
+      <main className="max-w-[1400px] mx-auto px-4 pb-16 pt-6">
         {selectedDay && <ScheduleGrid selectedDay={selectedDay} eventId={eventId} />}
       </main>
 
       <Link
         to="/admin"
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground/60 bg-card/80 backdrop-blur-sm border border-border/40 hover:text-primary hover:border-primary/30 transition-all"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+        style={{ color: "rgba(255,255,255,0.25)", background: "rgba(17,17,17,0.8)", border: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <Settings size={14} />
-        Admin
+        <Settings size={13} /> Admin
       </Link>
     </div>
   );

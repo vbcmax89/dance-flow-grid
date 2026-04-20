@@ -141,79 +141,97 @@ function StageBlock({
   height: number;
 }) {
   const lvl = levelColor(stage.livelli?.name || "");
-  const compact = height < 60;
-  const tall = height >= 110;
-  const showTitle = height >= 82;
-  const showLevel = height >= 68;
-  const emojiSize = tall ? 22 : 15;
+  const compact = height < 58;
+  const tall = height >= 100;
 
   return (
     <button
       onClick={onClick}
-      className="group relative h-full w-full rounded-xl text-left transition-all duration-200 hover:brightness-110 hover:z-10"
+      className="group relative h-full w-full text-left transition-all duration-200 hover:brightness-115 hover:scale-[1.01] hover:z-10"
       style={{
-        background: "#161008",
-        border: `1.5px solid ${lvl}55`,
-        boxShadow: `0 2px 8px rgba(0,0,0,0.5), inset 0 0 0 1px ${lvl}18`,
+        borderRadius: 10,
+        background: `linear-gradient(135deg, #1c1105 0%, #150d04 60%, #0f0a03 100%)`,
+        border: `1.5px solid ${lvl}50`,
+        boxShadow: `0 2px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)`,
         overflow: "hidden",
       }}
     >
+      {/* top accent bar */}
+      <span
+        className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${lvl} 0%, ${lvl}88 50%, transparent 100%)` }}
+      />
       {/* left accent bar */}
       <span
-        className="absolute left-0 top-0 bottom-0 w-[4px]"
+        className="absolute left-0 top-0 bottom-0 w-[3px]"
         style={{ background: lvl }}
       />
 
       {compact ? (
-        /* ── mini block: tutto su una riga ── */
-        <div className="absolute inset-0 pl-3 pr-1.5 flex items-center gap-1.5 overflow-hidden">
-          <span style={{ fontSize: 12, filter: emoji3d, lineHeight: 1, flexShrink: 0 }}>
+        /* ── mini: single pill row ── */
+        <div className="absolute inset-0 pl-3 pr-2 flex items-center gap-2 overflow-hidden">
+          <span style={{ fontSize: 13, filter: emoji3d, flexShrink: 0, lineHeight: 1 }}>
             {stageEmoji(stage)}
           </span>
-          <span
-            className="font-bold text-white truncate"
-            style={{ fontSize: 11, lineHeight: 1.2 }}
-          >
+          <span className="font-black text-white truncate uppercase" style={{ fontSize: 10, letterSpacing: "0.05em" }}>
             {stage.artist}
+          </span>
+          <span className="ml-auto font-mono shrink-0" style={{ fontSize: 9, color: lvl, fontWeight: 700 }}>
+            {formatTime(stage.start_time)}
           </span>
         </div>
       ) : (
-        /* ── blocco normale: tre zone fisse ── */
-        <div className="absolute inset-0 pl-3 pr-2 pt-1.5 pb-1.5 flex flex-col overflow-hidden">
+        /* ── normal block ── */
+        <div className="absolute inset-0 pl-3 pr-2 pt-2 pb-2 flex flex-col overflow-hidden gap-0.5">
 
-          {/* zona 1 — orario */}
-          <span
-            className="font-mono font-bold shrink-0"
-            style={{ fontSize: 11, color: "#ffffff", lineHeight: 1.4, letterSpacing: "0.02em" }}
-          >
-            {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
-          </span>
+          {/* time row */}
+          <div className="flex items-center justify-between shrink-0">
+            <span className="font-mono font-bold" style={{ fontSize: 10, color: lvl, letterSpacing: "0.04em" }}>
+              {formatTime(stage.start_time)}–{formatTime(stage.end_time)}
+            </span>
+            {stage.livelli && (
+              <span
+                className="font-black uppercase shrink-0"
+                style={{
+                  fontSize: 7,
+                  letterSpacing: "0.07em",
+                  padding: "1px 5px",
+                  borderRadius: 99,
+                  backgroundColor: `${lvl}20`,
+                  color: lvl,
+                  border: `1px solid ${lvl}55`,
+                  lineHeight: 1.6,
+                }}
+              >
+                {stage.livelli.name}
+              </span>
+            )}
+          </div>
 
-          {/* zona 2 — emoji + artista + stile (flex-1 per riempire lo spazio) */}
-          <div className="flex items-center gap-1.5 flex-1 min-h-0 overflow-hidden my-1">
-            <span
-              className="shrink-0 leading-none self-start mt-0.5"
-              style={{ fontSize: emojiSize, filter: emoji3d }}
-            >
+          {/* artist row — bold, like flyer */}
+          <div className="flex items-center gap-1.5 flex-1 min-h-0 overflow-hidden">
+            <span style={{ fontSize: tall ? 18 : 14, filter: emoji3d, flexShrink: 0, lineHeight: 1 }}>
               {stageEmoji(stage)}
             </span>
             <div className="flex flex-col min-w-0 overflow-hidden">
               <span
-                className="font-bold text-white leading-snug"
+                className="font-black text-white uppercase leading-tight"
                 style={{
-                  fontSize: tall ? 15 : 13,
+                  fontSize: tall ? 14 : 12,
+                  letterSpacing: "0.04em",
                   display: "-webkit-box",
                   WebkitLineClamp: tall ? 2 : 1,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
                 }}
               >
                 {stage.artist}
               </span>
-              {showTitle && (
+              {tall && (
                 <span
-                  className="font-medium truncate"
-                  style={{ fontSize: 10, color: lvl, fontStyle: "italic", marginTop: 2 }}
+                  className="font-semibold truncate mt-0.5"
+                  style={{ fontSize: 10, color: `${lvl}cc`, fontStyle: "italic" }}
                   title={stage.title}
                 >
                   {stage.title}
@@ -222,22 +240,14 @@ function StageBlock({
             </div>
           </div>
 
-          {/* zona 3 — badge livello */}
-          {showLevel && stage.livelli && (
+          {/* title for medium blocks */}
+          {!tall && height >= 76 && (
             <span
-              className="self-start shrink-0 font-bold uppercase"
-              style={{
-                fontSize: 8,
-                letterSpacing: "0.06em",
-                padding: "2px 6px",
-                borderRadius: 99,
-                backgroundColor: `${lvl}22`,
-                color: lvl,
-                border: `1px solid ${lvl}66`,
-                lineHeight: 1.5,
-              }}
+              className="font-semibold truncate shrink-0"
+              style={{ fontSize: 9, color: `${lvl}bb`, fontStyle: "italic" }}
+              title={stage.title}
             >
-              {stage.livelli.name}
+              {stage.title}
             </span>
           )}
         </div>
@@ -471,29 +481,26 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     const color = roomColorFor(room, idx);
     return (
       <div
-        className="flex items-center justify-center gap-2.5 px-3 relative overflow-hidden"
+        className="flex items-center justify-center gap-2 px-3 relative overflow-hidden"
         style={{
-          height: 52,
-          background: `linear-gradient(135deg, ${color}ff 0%, ${color}cc 60%, ${color}99 100%)`,
-          borderBottom: `3px solid ${lighten(color, 0.3)}`,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px ${color}50`,
+          height: 56,
+          background: `linear-gradient(135deg, #0d0d0d 0%, #141414 100%)`,
+          borderBottom: `2px solid ${color}`,
+          boxShadow: `inset 0 -4px 20px ${color}25`,
         }}
       >
-        {/* glow spot */}
-        <span
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.18) 0%, transparent 70%)` }}
-        />
-        <span
-          className="w-2 h-2 rounded-full shrink-0 relative"
-          style={{ backgroundColor: "#fff", boxShadow: `0 0 10px ${lighten(color, 0.6)}` }}
-        />
-        <h3
-          className="font-heading font-extrabold uppercase tracking-widest truncate text-center relative"
-          style={{ color: "#ffffff", fontSize: 13, textShadow: "0 1px 4px rgba(0,0,0,0.4)", letterSpacing: "0.12em" }}
-        >
-          {room.name}
-        </h3>
+        {/* bottom glow */}
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px pointer-events-none"
+          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+        {/* pill */}
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full relative"
+          style={{ background: `${color}18`, border: `1px solid ${color}50` }}>
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+          <h3 className="font-black uppercase truncate text-center"
+            style={{ color: "#fff", fontSize: 12, letterSpacing: "0.14em", textShadow: `0 0 20px ${color}` }}>
+            {room.name}
+          </h3>
+        </div>
       </div>
     );
   };
@@ -503,8 +510,8 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
     const gridTemplateColumns = `${GUTTER}px repeat(${Math.max(rooms.length, 1)}, minmax(${COL_MIN_PX}px, 1fr))`;
     return (
       <div
-        className="rounded-2xl bg-card/50 border border-gold/20 backdrop-blur-sm"
-        style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}
+        className="rounded-2xl border"
+        style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)", background: "#0d0d0d", borderColor: "rgba(201,168,76,0.15)" }}
       >
         <div style={{ minWidth: GUTTER + rooms.length * COL_MIN_PX }}>
           {/* sticky header row */}
@@ -512,24 +519,25 @@ export default function ScheduleGrid({ selectedDay, eventId }: { selectedDay: st
             className="grid sticky top-0 z-20"
             style={{
               gridTemplateColumns,
-              backgroundColor: "#0a0a0a",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+              backgroundColor: "#0d0d0d",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.7)",
             }}
           >
-            {/* corner cell — top-left, must beat both axes */}
+            {/* corner cell */}
             <div
-              className="sticky left-0 flex items-center justify-end pr-2 uppercase tracking-widest font-bold"
+              className="sticky left-0 flex items-center justify-end pr-3 uppercase tracking-widest font-black"
               style={{
                 zIndex: 30,
-                backgroundColor: "#0a0a0a",
-                borderRight: "1px solid rgba(201,168,76,0.3)",
-                borderBottom: "3px solid rgba(201,168,76,0.3)",
+                backgroundColor: "#0d0d0d",
+                borderRight: "1px solid rgba(201,168,76,0.2)",
+                borderBottom: "2px solid rgba(201,168,76,0.2)",
                 color: "#C9A84C",
-                fontSize: 10,
-                height: 52,
+                fontSize: 9,
+                height: 56,
+                letterSpacing: "0.15em",
               }}
             >
-              Ora
+              ORA
             </div>
             {rooms.map((room, idx) => (
               <RoomHeader key={room.id} room={room} idx={idx} />
@@ -654,9 +662,9 @@ function MobileSchedule({
   if (rooms.length === 0) return null;
 
   return (
-    <div className="rounded-2xl bg-card/50 border border-gold/20" style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}>
+    <div className="rounded-2xl border" style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)", background: "#0d0d0d", borderColor: "rgba(201,168,76,0.15)" }}>
       {/* room tabs */}
-      <div className="flex items-center gap-1 px-3 py-2 border-b border-gold/20 bg-card sticky top-0 z-20">
+      <div className="flex items-center gap-1 px-3 py-2 border-b sticky top-0 z-20" style={{ background: "#0d0d0d", borderColor: "rgba(201,168,76,0.15)" }}>
         <button
           onClick={() => emblaApi?.scrollPrev()}
           className="p-1 text-gold/70 hover:text-gold disabled:opacity-30"
