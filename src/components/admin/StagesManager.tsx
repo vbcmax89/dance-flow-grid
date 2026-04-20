@@ -4,7 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
-import { Upload, X, Image } from "lucide-react";
+import { Upload, X, Image, Plus, Pencil } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type StageWithRelations = Tables<"stages"> & {
   sale: Tables<"sale"> | null;
@@ -22,11 +28,34 @@ export default function StagesManager({ eventoId }: { eventoId: string }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  const openAdd = () => {
+    setForm(empty);
+    setEditingId(null);
+    setModalOpen(true);
+  };
+
+  const openEdit = (s: StageWithRelations) => {
+    setEditingId(s.id);
+    setForm({
+      artist: s.artist, title: s.title, start_time: s.start_time, end_time: s.end_time,
+      sala_id: s.sala_id, giorno_id: s.giorno_id, livello_id: s.livello_id || "",
+      notes: s.notes || "", description: s.description || "",
+    });
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setForm(empty);
+    setEditingId(null);
+  };
 
   const save = async () => {
     if (!form.artist || !form.title || !form.sala_id || !form.giorno_id) {
@@ -53,26 +82,16 @@ export default function StagesManager({ eventoId }: { eventoId: string }) {
       if (error) { toast.error(error.message); return; }
       toast.success("Stage added");
     }
-    setForm(empty); setEditingId(null);
+    closeModal();
     qc.invalidateQueries({ queryKey: ["stages", eventoId] });
-  };
-
-  const edit = (s: StageWithRelations) => {
-    setEditingId(s.id);
-    setForm({
-      artist: s.artist, title: s.title, start_time: s.start_time, end_time: s.end_time,
-      sala_id: s.sala_id, giorno_id: s.giorno_id, livello_id: s.livello_id || "",
-      notes: s.notes || "", description: s.description || "",
-    });
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("stages").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    qc.invalidateQueries({ queryKey: ["stages", eventoId] }); toast.success("Stage deleted");
+    qc.invalidateQueries({ queryKey: ["stages", eventoId] });
+    toast.success("Stage deleted");
   };
-
-  const cancel = () => { setForm(empty); setEditingId(null); };
 
   const handleUploadClick = (stageId: string) => {
     setUploadTargetId(stageId);
@@ -108,48 +127,21 @@ export default function StagesManager({ eventoId }: { eventoId: string }) {
   const inputClass = selectClass;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <input type="file" ref={fileRef} accept="image/*" className="hidden" onChange={handleFileChange} />
 
-      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-        <h3 className="font-heading font-semibold text-foreground">{editingId ? "Edit Stage" : "Add Stage"}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input value={form.artist} onChange={(e) => set("artist", e.target.value)} placeholder="Artist *" className={inputClass} />
-          <input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Title *" className={inputClass} />
-          <select value={form.sala_id} onChange={(e) => set("sala_id", e.target.value)} className={selectClass}>
-            <option value="">Select Room *</option>
-            {sale?.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-          <select value={form.giorno_id} onChange={(e) => set("giorno_id", e.target.value)} className={selectClass}>
-            <option value="">Select Day *</option>
-            {giorni?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
-          <select value={form.livello_id} onChange={(e) => set("livello_id", e.target.value)} className={selectClass}>
-            <option value="">Select Level</option>
-            {livelli?.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
-          <input type="time" value={form.start_time} onChange={(e) => set("start_time", e.target.value)} className={inputClass} />
-          <input type="time" value={form.end_time} onChange={(e) => set("end_time", e.target.value)} className={inputClass} />
-          <input value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notes" className={inputClass} />
-        </div>
-        <textarea
-          value={form.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder="Description (what is this stage about, details for attendees...)"
-          rows={3}
-          className={inputClass + " w-full resize-y"}
-        />
-        <div className="flex gap-2">
-          <button onClick={save} className="bg-primary text-primary-foreground px-5 py-2 rounded-lg font-semibold hover:opacity-90">
-            {editingId ? "Update" : "Add"}
-          </button>
-          {editingId && <button onClick={cancel} className="bg-secondary text-secondary-foreground px-5 py-2 rounded-lg font-semibold hover:opacity-80">Cancel</button>}
-        </div>
-      </div>
+      {/* Add Stage button */}
+      <button
+        onClick={openAdd}
+        className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:opacity-90"
+      >
+        <Plus size={16} /> Add Stage
+      </button>
 
+      {/* Stage list */}
       <div className="space-y-2">
         {(stages as StageWithRelations[] | undefined)?.map((s) => (
-          <div key={s.id} className="bg-card border border-border rounded-lg px-4 py-3 space-y-2">
+          <div key={s.id} className="bg-card border border-border rounded-lg px-4 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 {s.artist_image_url ? (
@@ -162,13 +154,17 @@ export default function StagesManager({ eventoId }: { eventoId: string }) {
                 <div className="min-w-0">
                   <div className="font-semibold text-foreground">{s.artist} — {s.title}</div>
                   <div className="text-sm text-muted-foreground">
-                    {s.sale?.name} · {s.giorni?.name} · {s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
-                    {s.livelli && <span className="ml-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: s.livelli.color, color: "#000" }}>{s.livelli.name}</span>}
+                    {s.sale?.name} · {s.giorni?.name} · {s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}
+                    {s.livelli && (
+                      <span className="ml-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: s.livelli.color, color: "#000" }}>
+                        {s.livelli.name}
+                      </span>
+                    )}
                   </div>
                   {s.description && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</div>}
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 items-center">
                 <button onClick={() => handleUploadClick(s.id)} disabled={uploading === s.id} className="text-primary text-sm hover:underline flex items-center gap-1">
                   <Upload size={12} /> {s.artist_image_url ? "Replace" : "Photo"}
                 </button>
@@ -177,13 +173,68 @@ export default function StagesManager({ eventoId }: { eventoId: string }) {
                     <X size={12} />
                   </button>
                 )}
-                <button onClick={() => edit(s)} className="text-primary text-sm hover:underline">Edit</button>
+                <button onClick={() => openEdit(s)} className="text-primary text-sm hover:underline flex items-center gap-1">
+                  <Pencil size={12} /> Edit
+                </button>
                 <button onClick={() => remove(s.id)} className="text-destructive text-sm hover:underline">Delete</button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Add / Edit Modal */}
+      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit Stage" : "Add Stage"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input value={form.artist} onChange={(e) => set("artist", e.target.value)} placeholder="Artist *" className={inputClass} />
+              <input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Title *" className={inputClass} />
+              <select value={form.sala_id} onChange={(e) => set("sala_id", e.target.value)} className={selectClass}>
+                <option value="">Select Room *</option>
+                {sale?.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+              <select value={form.giorno_id} onChange={(e) => set("giorno_id", e.target.value)} className={selectClass}>
+                <option value="">Select Day *</option>
+                {giorni?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+              <select value={form.livello_id} onChange={(e) => set("livello_id", e.target.value)} className={selectClass}>
+                <option value="">Select Level</option>
+                {livelli?.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">Start</label>
+                  <input type="time" value={form.start_time} onChange={(e) => set("start_time", e.target.value)} className={inputClass + " w-full"} />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">End</label>
+                  <input type="time" value={form.end_time} onChange={(e) => set("end_time", e.target.value)} className={inputClass + " w-full"} />
+                </div>
+              </div>
+              <input value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notes" className={inputClass + " sm:col-span-2"} />
+            </div>
+            <textarea
+              value={form.description}
+              onChange={(e) => set("description", e.target.value)}
+              placeholder="Description (what is this stage about, details for attendees...)"
+              rows={3}
+              className={inputClass + " w-full resize-y"}
+            />
+            <div className="flex gap-2 pt-1">
+              <button onClick={save} className="bg-primary text-primary-foreground px-5 py-2 rounded-lg font-semibold hover:opacity-90">
+                {editingId ? "Update" : "Add"}
+              </button>
+              <button onClick={closeModal} className="bg-secondary text-secondary-foreground px-5 py-2 rounded-lg font-semibold hover:opacity-80">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
